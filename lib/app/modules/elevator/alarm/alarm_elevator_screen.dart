@@ -3,8 +3,8 @@ import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
 
 class AlarmElevatorScreen extends StatefulWidget {
-  final BoardDB board;
-  const AlarmElevatorScreen({super.key, required this.board});
+  final int boardID;
+  const AlarmElevatorScreen({super.key, required this.boardID});
 
   @override
   State<AlarmElevatorScreen> createState() => _AlarmElevatorScreenState();

@@ -7,7 +7,8 @@ class MqttService {
   final String broker =
       "mqtt-elevator.haophuong.com"; // Thay bằng broker của bạn
   final int port = 2001;
-  final String clientId = const Uuid().v4().substring(0, 8); // Tạo clientId ngẫu nhiên
+  final String clientId =
+      const Uuid().v4().substring(0, 8); // Tạo clientId ngẫu nhiên
   MqttServerClient? client;
   bool _isConnected = false;
   Timer? _reconnectTimer;
@@ -36,6 +37,22 @@ class MqttService {
       await client!.connect();
       if (client!.connectionStatus?.state == MqttConnectionState.connected) {
         print("✅ Đã kết nối MQTT");
+
+        // Đăng ký listener để nhận tin nhắn
+        client!.updates!
+            .listen((List<MqttReceivedMessage<MqttMessage?>>? messages) {
+          final MqttPublishMessage recMess =
+              messages![0].payload as MqttPublishMessage;
+          final String topic = messages[0].topic;
+          final String payload =
+              MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+
+          print("📩 Nhận tin nhắn từ $topic: $payload");
+
+          // Gửi tin nhắn đến listener đã đăng ký
+          onMessageReceived(topic, payload);
+        });
+
         return true;
       } else {
         print("⚠️ Kết nối MQTT thất bại");

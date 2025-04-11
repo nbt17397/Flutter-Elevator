@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:elevator/app/modules/home/menu_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -95,12 +96,9 @@ class _MyAuthenticationState extends State<MyAuthentication> {
                       barrierDismissible: false,
                       builder: (context) {
                         return AlertDialog(
-                          title: const Text(
-                            'Cảnh báo'
-                          ),
+                          title: const Text('Cảnh báo'),
                           content: const Text(
-                            'Phiên đăng nhập đã kết thúc, vui lòng đăng nhập lại.'
-                          ),
+                              'Phiên đăng nhập đã kết thúc, vui lòng đăng nhập lại.'),
                           actions: <Widget>[
                             TextButton(
                               onPressed: () {
@@ -129,7 +127,7 @@ class _MyAuthenticationState extends State<MyAuthentication> {
 
                   if (box.containsKey(0)) {
                     ApiProvider.setBearerAuth(userModel.accessToken);
-                    return HomeScreen();
+                    return MenuScreen();
                   } else {
                     return const LoginScreen();
                   }

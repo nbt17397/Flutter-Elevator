@@ -39,6 +39,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
   shimmer: ^3.0.0
   google_maps_flutter: ^2.10.0
+  geolocator: ^10.1.0
   # carousel_slider: ^5.0.0
   badges: ^3.1.2
   flutter_speed_dial: ^7.0.0
@@ -46,8 +47,10 @@ dependencies:
   flutter_webrtc: any
   # flutter_vlc_player: any
   lottie: any
+  dropdown_search: ^6.0.2
   syncfusion_flutter_charts: 27.2.5
   syncfusion_flutter_core: 27.2.5
+  floating_bottom_navigation_bar: ^1.5.2
   
   hive: ^2.2.3  # local database (SQFlite replacement)
   hive_flutter: ^1.1.0 # make it easy to use hive (no need for path provider)

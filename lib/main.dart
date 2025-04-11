@@ -1,4 +1,5 @@
 import 'package:elevator/app/modules/authentication/my_authentication.dart';
+import 'package:elevator/app/services/request_location_permission.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +18,7 @@ import 'app/services/mqtt/mqtt_service.dart';
 Future<void> main() async {
   // wait for bindings
   WidgetsFlutterBinding.ensureInitialized();
+  await checkAndRequestLocationPermission();
   final mqttService = MqttService();
   // initialize local db (hive) and register our custom adapters
   await MyHive.init(registerAdapters: (hive) {
