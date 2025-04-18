@@ -45,7 +45,7 @@ class _MenuScreenState extends State<MenuScreen> {
             body: snapshot.data == 0
                 ? HomeScreen()
                 : snapshot.data == 1
-                    ? AlarmElevatorScreen(boardID: 1)
+                    ? AlarmElevatorScreen(registerID: 66)
                     : SettingScreen(),
             bottomNavigationBar: ClipRRect(
               child: FloatingNavbar(

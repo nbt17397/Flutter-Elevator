@@ -1,52 +1,70 @@
-import 'package:elevator/app/data/response/location_response.dart';
-import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:elevator/app/data/response/historical_data_response.dart';
+import 'package:elevator/app/services/reporitories/historical_data_repo.dart';
+import 'package:elevator/config/shared/colors.dart';
 
 class ElevatorUsageFloorChart extends StatefulWidget {
-  final BoardDB board;
+  final int registerId;
 
-  const ElevatorUsageFloorChart({super.key, required this.board});
+  const ElevatorUsageFloorChart({Key? key, required this.registerId}) : super(key: key);
 
   @override
-  State<ElevatorUsageFloorChart> createState() =>
-      _ElevatorUsageFloorChartState();
+  _ElevatorUsageFloorChartState createState() => _ElevatorUsageFloorChartState();
 }
 
 class _ElevatorUsageFloorChartState extends State<ElevatorUsageFloorChart> {
-  String selectedTimeFrame = 'Ngày'; // Mặc định theo ngày
-  final List<String> timeFrames = ['Ngày', 'Tuần', 'Tháng', 'Năm'];
+  List<HistoricalData> _historicalData = [];
+  Map<int, int> _floorCounts = {};
+  bool _isLoading = true;
+  String _errorMessage = '';
 
-  final Map<String, List<_ChartData>> chartDataByTime = {
-    'Ngày': [
-      _ChartData("Tầng 1", 10),
-      _ChartData("Tầng 2", 15),
-      _ChartData("Tầng 3", 25),
-      _ChartData("Tầng 4", 30),
-      _ChartData("Tầng 5", 12),
-    ],
-    'Tuần': [
-      _ChartData("Tầng 1", 70),
-      _ChartData("Tầng 2", 75),
-      _ChartData("Tầng 3", 125),
-      _ChartData("Tầng 4", 130),
-      _ChartData("Tầng 5", 112),
-    ],
-    'Tháng': [
-      _ChartData("Tầng 1", 100),
-      _ChartData("Tầng 2", 150),
-      _ChartData("Tầng 3", 250),
-      _ChartData("Tầng 4", 300),
-      _ChartData("Tầng 5", 120),
-    ],
-    'Năm': [
-      _ChartData("Tầng 1", 1000),
-      _ChartData("Tầng 2", 1500),
-      _ChartData("Tầng 3", 2500),
-      _ChartData("Tầng 4", 3000),
-      _ChartData("Tầng 5", 1200),
-    ],
-  };
+  @override
+  void initState() {
+    super.initState();
+    _fetchHistoricalData();
+  }
+
+  Future<void> _fetchHistoricalData() async {
+    try {
+      final repo = HistoricalDataRepo();
+      // gọi API và lấy về List<HistoricalData>
+      final List<HistoricalData> data =
+          await repo.getHistoricalDataByRegisterID(id: widget.registerId);
+      // tính toán số lần mở/cửa theo tầng
+      final Map<int, int> counts = {};
+      for (var item in data) {
+        if (item.value != null) {
+          counts[item.value!] = (counts[item.value!] ?? 0) + 1;
+        }
+      }
+
+      setState(() {
+        _historicalData = data;
+        _floorCounts = counts;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
+      });
+    }
+  }
+
+  // Chuyển map thành list chart data
+  List<_ChartData> get _chartData {
+    return _floorCounts.entries
+        .map((e) => _ChartData('Tầng ${e.key}', e.value))
+        .toList()
+      ..sort((a, b) {
+        // sort theo số tầng (tách số ra so sánh)
+        final int fa = int.tryParse(a.floor.replaceAll('Tầng ', '')) ?? 0;
+        final int fb = int.tryParse(b.floor.replaceAll('Tầng ', '')) ?? 0;
+        return fa.compareTo(fb);
+      });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +72,7 @@ class _ElevatorUsageFloorChartState extends State<ElevatorUsageFloorChart> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Biểu đồ đóng/mở cửa tầng"),
+        title: const Text("Biểu đồ mở cửa tầng"),
         backgroundColor: CustomColors.appbarColor,
       ),
       body: Container(
@@ -67,75 +85,68 @@ class _ElevatorUsageFloorChartState extends State<ElevatorUsageFloorChart> {
             fit: BoxFit.cover,
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              margin: EdgeInsets.only(left: 4),
-              padding: EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(6)),
-              child: DropdownButton<String>(
-                value: selectedTimeFrame,
-                items: timeFrames.map((String timeFrame) {
-                  return DropdownMenuItem<String>(
-                    value: timeFrame,
-                    child: Text(timeFrame),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedTimeFrame = newValue!;
-                  });
-                },
-              ),
-            ),
-            SizedBox(height: 10),
-            Center(
-              child: Container(
-                width: size.width * 0.9,
-                height: size.height * 0.6,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.all(12),
-                child: SfCartesianChart(
-                  title: ChartTitle(
-                    text: "Số lần đóng/mở cửa theo tầng",
-                    textStyle: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                  primaryXAxis: CategoryAxis(
-                    majorGridLines: const MajorGridLines(width: 0),
-                    labelStyle:
-                        const TextStyle(color: Colors.black, fontSize: 12),
-                  ),
-                  primaryYAxis: NumericAxis(
-                    minimum: 0,
-                    majorGridLines: const MajorGridLines(dashArray: [5, 5]),
-                    labelStyle:
-                        const TextStyle(color: Colors.black, fontSize: 12),
-                  ),
-                  tooltipBehavior: TooltipBehavior(enable: true),
-                  series: <CartesianSeries<_ChartData, String>>[
-                    ColumnSeries<_ChartData, String>(
-                      dataSource: chartDataByTime[selectedTimeFrame]!,
-                      xValueMapper: (_ChartData data, _) => data.floor,
-                      yValueMapper: (_ChartData data, _) => data.usage,
-                      name: "Lượt đóng/mở",
-                      color: Colors.blueAccent,
-                      dataLabelSettings: const DataLabelSettings(
-                        isVisible: true,
-                        textStyle: TextStyle(color: Colors.black, fontSize: 12),
-                      ),
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              )
+            : _errorMessage.isNotEmpty
+                ? Center(
+                    child: Text(
+                      'Lỗi: $_errorMessage',
+                      style: const TextStyle(color: Colors.red, fontSize: 16),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+                  )
+                : _chartData.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'Không có dữ liệu.',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      )
+                    : Center(
+                        child: Container(
+                          width: size.width * 0.9,
+                          height: size.height * 0.6,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.all(12),
+                          child: SfCartesianChart(
+                            title: ChartTitle(
+                              text: "Số lần mở cửa theo tầng",
+                              textStyle: const TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                            primaryXAxis: CategoryAxis(
+                              majorGridLines: const MajorGridLines(width: 0),
+                              labelStyle: const TextStyle(
+                                  color: Colors.black, fontSize: 12),
+                            ),
+                            primaryYAxis: NumericAxis(
+                              minimum: 0,
+                              majorGridLines:
+                                  const MajorGridLines(dashArray: [5, 5]),
+                              labelStyle: const TextStyle(
+                                  color: Colors.black, fontSize: 12),
+                            ),
+                            tooltipBehavior: TooltipBehavior(enable: true),
+                            series: <CartesianSeries<_ChartData, String>>[
+                              ColumnSeries<_ChartData, String>(
+                                dataSource: _chartData,
+                                xValueMapper: (_ChartData data, _) => data.floor,
+                                yValueMapper: (_ChartData data, _) => data.usage,
+                                name: "Số lần mở",
+                                dataLabelSettings: const DataLabelSettings(
+                                  isVisible: true,
+                                  textStyle: TextStyle(
+                                      color: Colors.black, fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
       ),
     );
   }

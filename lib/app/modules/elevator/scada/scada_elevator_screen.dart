@@ -1,14 +1,17 @@
+import 'package:elevator/app/components/blinking_brid_item.dart';
+import 'package:elevator/app/components/blinking_circle_button.dart';
+import 'package:elevator/app/data/response/data_response.dart';
 import 'package:elevator/app/data/response/location_response.dart';
-import 'package:elevator/app/modules/elevator/alarm/alarm_elevator_screen.dart';
 import 'package:elevator/app/modules/elevator/setting/setting_elevator_screen.dart';
 import 'package:elevator/app/modules/elevator/setting/spec_elevator_screen.dart';
 import 'package:elevator/app/services/mqtt/mqtt_provider.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
 
 import '../report/menu_report_screen.dart';
 
@@ -23,27 +26,49 @@ class ScadaElevatorScreen extends StatefulWidget {
 class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
   BoardDB get board => widget.board;
   String get topic => "from-client/${board.deviceId}";
-  // final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
+  final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
   bool _isStreaming = false;
   MqttProvider? mqttProvider;
-
+  DataResponse? _resp;
+  TextEditingController _controller = TextEditingController(text: '0 m/s');
   final List<Map<String, dynamic>> items = [
     {
+      "id": 3,
       "icon": Icons.local_fire_department,
       "label": "Cảnh báo cháy",
       "color": Colors.red
     },
-    {"icon": Icons.warning, "label": "Quá tải", "color": Colors.orange},
-    {"icon": Icons.stop_circle, "label": "Dừng khẩn", "color": Colors.blue},
-    {"icon": Icons.phone, "label": "Liên lạc", "color": Colors.green},
-    {"icon": Icons.medical_services, "label": "Cứu hộ", "color": Colors.purple},
-    {"icon": Icons.star, "label": "Trạng thái VIP", "color": Colors.yellow},
+    {
+      "id": 8,
+      "icon": Icons.lock,
+      "label": "Khóa thang",
+      "color": Colors.orange
+    },
+    {
+      "id": 0,
+      "icon": Icons.stop_circle,
+      "label": "Dừng khẩn",
+      "color": Colors.blue
+    },
+    {"id": 16, "icon": Icons.phone, "label": "Liên lạc", "color": Colors.green},
+    {
+      "id": 11,
+      "icon": Icons.medical_services,
+      "label": "Cứu hộ",
+      "color": Colors.purple
+    },
+    {
+      "id": 15,
+      "icon": Icons.star,
+      "label": "Trạng thái VIP",
+      "color": Colors.yellow
+    },
   ];
 
   @override
   void initState() {
     super.initState();
-    // _localRenderer.initialize(); // Chỉ khởi tạo, chưa chạy stream
+    _localRenderer.initialize(); // Chỉ khởi tạo, chưa chạy stream
     WidgetsBinding.instance.addPostFrameCallback((_) {
       mqttProvider = Provider.of<MqttProvider>(context, listen: false);
       mqttProvider?.subscribeTopic(topic);
@@ -52,39 +77,68 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
 
   @override
   void dispose() {
-    // _stopStream();
-    // _localRenderer.dispose();
-    mqttProvider?.unsubscribeTopic(topic);
+    _stopStream();
+    _localRenderer.dispose();
+    // mqttProvider?.unsubscribeTopic(topic);
     super.dispose();
   }
 
-  // Future<void> _startStream() async {
-  //   MediaStream stream = await navigator.mediaDevices.getUserMedia({
-  //     'video': true,
-  //     'audio': false,
-  //   });
+  Future<void> _startStream() async {
+    MediaStream stream = await navigator.mediaDevices.getUserMedia({
+      'video': true,
+      'audio': false,
+    });
 
-  //   setState(() {
-  //     _localRenderer.srcObject = stream;
-  //     _isStreaming = true;
-  //   });
-  // }
+    setState(() {
+      _localRenderer.srcObject = stream;
+      _isStreaming = true;
+    });
+  }
 
-  // void _stopStream() {
-  //   _localRenderer.srcObject?.getTracks().forEach((track) => track.stop());
-  //   _localRenderer.srcObject = null;
-  // }
+  void _stopStream() {
+    _localRenderer.srcObject?.getTracks().forEach((track) => track.stop());
+    _localRenderer.srcObject = null;
+  }
 
-  // void _toggleStream() {
-  //   setState(() {
-  //     if (_isStreaming) {
-  //       _stopStream();
-  //     } else {
-  //       _startStream();
-  //     }
-  //     _isStreaming = !_isStreaming;
-  //   });
-  // }
+  void _toggleStream() {
+    setState(() {
+      if (_isStreaming) {
+        _stopStream();
+      } else {
+        _startStream();
+      }
+      _isStreaming = !_isStreaming;
+    });
+  }
+
+  int? getValueByTagName(String tagName) {
+    final tagData = _resp?.data?.firstWhere(
+      (tag) => tag.name == tagName,
+      orElse: () => TagData(), // tránh crash nếu không tìm thấy
+    );
+
+    if (tagData != null) {
+      // Trả về giá trị đầu tiên không null trong mảng values
+      return tagData.value;
+    }
+    return null;
+  }
+
+  String getFloorNameFromTag005() {
+    final tagValue = getValueByTagName("TAG005");
+
+    switch (tagValue) {
+      case 1:
+        return "G"; // Tầng trệt
+      case 2:
+        return "1";
+      case 3:
+        return "2";
+      // Thêm các tầng khác nếu cần
+      default:
+        return "N/A"; // Giá trị không hợp lệ hoặc chưa định nghĩa
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,9 +171,6 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                   child: Text('Thông số kỹ thuật',
                       style: TextStyle(fontSize: 14))),
               PopupMenuItem(
-                  value: "alarms",
-                  child: Text('Cảnh báo', style: TextStyle(fontSize: 14))),
-              PopupMenuItem(
                   value: "settings",
                   child:
                       Text('Cài đặt thông số', style: TextStyle(fontSize: 14))),
@@ -148,15 +199,7 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                 SettingElevatorScreen(board: widget.board)));
                     break;
                   }
-                case 'alarms':
-                  {
-                    Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                            builder: (_) => AlarmElevatorScreen(
-                                boardID: widget.board.id!)));
-                    break;
-                  }
+
                 case 'parameters':
                   {
                     Navigator.push(
@@ -176,8 +219,24 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
         ],
       ),
       body: Consumer<MqttProvider>(builder: (context, mqttProvider, child) {
-        String message = mqttProvider.messages[topic] ?? "Chưa có dữ liệu";
-        print(message);
+        String? message = mqttProvider.messages[topic];
+        print("------------");
+
+        if (message != null && message.isNotEmpty) {
+          try {
+            Map<String, dynamic> jsonMap = json.decode(message);
+            _resp = DataResponse.fromJson(jsonMap);
+            print("ID: ${_resp?.data![0].name}");
+            int? value = getValueByTagName("TAG050");
+            _controller.text = "${value! / 1000} m/s";
+            print(value);
+          } catch (e) {
+            print("Lỗi khi decode JSON: $e");
+          }
+        } else {
+          print("Chưa có dữ liệu cho topic này");
+        }
+
         return Container(
           padding: const EdgeInsets.all(16),
           width: double.infinity,
@@ -193,10 +252,9 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: EdgeInsets.fromLTRB(
-                      6, 6, 6, 0), // Tạo khoảng cách giữa khung và nội dung
+                  padding: EdgeInsets.fromLTRB(6, 6, 6, 0),
                   decoration: BoxDecoration(
-                    color: Colors.white, // Màu khung bên ngoài
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
@@ -211,14 +269,14 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            // RTCVideoView(
-                            //   _localRenderer,
-                            //   objectFit: RTCVideoViewObjectFit
-                            //       .RTCVideoViewObjectFitCover,
-                            // ),
+                            RTCVideoView(
+                              _localRenderer,
+                              objectFit: RTCVideoViewObjectFit
+                                  .RTCVideoViewObjectFitCover,
+                            ),
                             Positioned(
                               child: GestureDetector(
-                                // onTap: _toggleStream,
+                                onTap: _toggleStream,
                                 child: Icon(
                                   _isStreaming
                                       ? Icons.stop_circle
@@ -284,18 +342,27 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                     flex: 2,
                                     child: GestureDetector(
                                       onTap: () {},
-                                      child: CircleAvatar(
-                                        radius: 28,
-                                        backgroundColor: Colors.green,
-                                        child: Text(
-                                          "Mở",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
+                                      child: getValueByTagName("TAG003") == 1
+                                          ? BlinkingCircleButton(
+                                              title: 'Mở',
+                                              backgroundColor: Colors.green,
+                                              textColor: Colors.black)
+                                          : CircleAvatar(
+                                              radius: 28,
+                                              backgroundColor:
+                                                  getValueByTagName("TAG003") ==
+                                                          1
+                                                      ? Colors.green
+                                                      : Colors.grey,
+                                              child: Text(
+                                                "Mở",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
                                     )),
                                 Expanded(
                                   flex: 3,
@@ -308,8 +375,12 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                             child: SizedBox(
                                               width: 40,
                                               height: 40,
-                                              child: Lottie.asset(
-                                                  'assets/jsons/arrow-up.json'),
+                                              child: getValueByTagName(
+                                                          'TAG002') ==
+                                                      1
+                                                  ? Lottie.asset(
+                                                      'assets/jsons/arrow-up.json')
+                                                  : SizedBox(),
                                             ),
                                           ),
                                         ),
@@ -324,7 +395,7 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                                   color: Colors.white)),
                                           child: Center(
                                               child: Text(
-                                            '1',
+                                            getFloorNameFromTag005(),
                                             style: TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 20,
@@ -336,8 +407,12 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                             child: SizedBox(
                                               width: 40,
                                               height: 40,
-                                              child: Lottie.asset(
-                                                  'assets/jsons/arrow-down.json'),
+                                              child: getValueByTagName(
+                                                          'TAG002') ==
+                                                      2
+                                                  ? Lottie.asset(
+                                                      'assets/jsons/arrow-down.json')
+                                                  : SizedBox(),
                                             ),
                                           ),
                                         ),
@@ -349,18 +424,27 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                     flex: 2,
                                     child: GestureDetector(
                                       onTap: () {},
-                                      child: CircleAvatar(
-                                        radius: 28,
-                                        backgroundColor: Colors.grey,
-                                        child: Text(
-                                          "Đóng",
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
+                                      child: getValueByTagName("TAG003") == 3
+                                          ? BlinkingCircleButton(
+                                              title: 'Đóng',
+                                              backgroundColor: Colors.red,
+                                              textColor: Colors.black)
+                                          : CircleAvatar(
+                                              radius: 28,
+                                              backgroundColor:
+                                                  getValueByTagName("TAG003") ==
+                                                          4
+                                                      ? Colors.green
+                                                      : Colors.grey,
+                                              child: Text(
+                                                "Đóng",
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
                                     )),
                               ],
                             ),
@@ -376,7 +460,8 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                 child: TextFormField(
                                   readOnly: true,
                                   enabled: false,
-                                  initialValue: "4.5 m/s",
+                                  // initialValue: "${getValueByTagName("TAG050")} m/s",
+                                  controller: _controller,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 21,
@@ -408,7 +493,7 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                 child: TextFormField(
                                   readOnly: true,
                                   enabled: false,
-                                  initialValue: "200 kg",
+                                  initialValue: "0 kg",
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 21,
@@ -487,26 +572,9 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
   }
 
   Widget _buildGridItem(Map<String, dynamic> item) {
-    return Expanded(
-      child: Container(
-        margin: EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: item["color"].withOpacity(0.8),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(item["icon"], color: Colors.white, size: 30),
-            SizedBox(height: 5),
-            Text(
-              item["label"],
-              style: TextStyle(color: Colors.white, fontSize: 12),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+    return BlinkingGridItem(
+      item: item,
+      currentValue: getValueByTagName("TAG049") ?? 7,
     );
   }
 }

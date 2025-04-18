@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+1
+version: 1.0.0+3
 
 environment:
   sdk: '>=3.3.4 <4.0.0'
@@ -39,7 +39,9 @@ dependencies:
   flutter_screenutil: ^5.9.3
   shimmer: ^3.0.0
   google_maps_flutter: ^2.10.0
-  geolocator: ^10.1.0
+  # geolocator: ^10.1.0
+  geolocator_android: 4.5.0
+  geolocator: ^9.0.2
   # carousel_slider: ^5.0.0
   badges: ^3.1.2
   flutter_speed_dial: ^7.0.0
@@ -74,6 +76,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   build_runner:  # generate dart files
   hive_generator: # generate hive files
+  intl: any
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

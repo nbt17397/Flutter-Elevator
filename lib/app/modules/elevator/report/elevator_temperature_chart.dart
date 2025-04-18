@@ -4,51 +4,51 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:elevator/app/data/response/historical_data_response.dart';
 import 'package:elevator/app/services/reporitories/historical_data_repo.dart';
 import 'package:elevator/config/shared/colors.dart';
+import 'package:elevator/app/data/response/location_response.dart';
 
-class ElevatorDoorOpenChart extends StatefulWidget {
+class ElevatorTemperatureChart extends StatefulWidget {
   final int registerId;
-
-  const ElevatorDoorOpenChart({Key? key, required this.registerId}) : super(key: key);
+  const ElevatorTemperatureChart({Key? key, required this.registerId}) : super(key: key);
 
   @override
-  _ElevatorDoorOpenChartState createState() => _ElevatorDoorOpenChartState();
+  _ElevatorTemperatureChartState createState() => _ElevatorTemperatureChartState();
 }
 
-class _ElevatorDoorOpenChartState extends State<ElevatorDoorOpenChart> {
-  List<HistoricalData> _historicalData = [];
-  Map<String, int> _dateCounts = {};
+class _ElevatorTemperatureChartState extends State<ElevatorTemperatureChart> {
+  List<_ChartData> _chartData = [];
   bool _isLoading = true;
   String _errorMessage = '';
 
-  final DateFormat _dayFormatter = DateFormat('dd/MM/yyyy');
+  final DateFormat _timeFormatter = DateFormat('HH:mm dd/MM/yyyy');
 
   @override
   void initState() {
     super.initState();
-    _fetchAndGroupByDate();
+    _fetchTemperatureData();
   }
 
-  Future<void> _fetchAndGroupByDate() async {
+  Future<void> _fetchTemperatureData() async {
     try {
       final repo = HistoricalDataRepo();
       final List<HistoricalData> data =
           await repo.getHistoricalDataByRegisterID(id: widget.registerId);
 
-      // Group by day
-      final Map<String, int> counts = {};
-      for (var item in data) {
-        if (item.timestamp != null) {
-          final dt = DateTime.tryParse(item.timestamp!);
-          if (dt != null) {
-            final key = _dayFormatter.format(dt);
-            counts[key] = (counts[key] ?? 0) + 1;
-          }
-        }
-      }
+      // Chuyển thành _ChartData, lọc các bản ghi có value và timestamp
+      final list = data
+          .where((e) => e.value != null && e.timestamp != null)
+          .map((e) {
+            final dt = DateTime.tryParse(e.timestamp!);
+            return _ChartData(
+              date: dt ?? DateTime.now(),
+              label: dt != null ? _timeFormatter.format(dt) : '',
+              value: e.value!.toDouble(),
+            );
+          })
+          .toList()
+        ..sort((a, b) => a.date.compareTo(b.date));
 
       setState(() {
-        _historicalData = data;
-        _dateCounts = counts;
+        _chartData = list;
         _isLoading = false;
       });
     } catch (e) {
@@ -59,26 +59,13 @@ class _ElevatorDoorOpenChartState extends State<ElevatorDoorOpenChart> {
     }
   }
 
-  List<_ChartData> get _chartData {
-    // Convert map entries to list and sort by actual date
-    final entries = _dateCounts.entries
-        .map((e) {
-          final dt = _dayFormatter.parse(e.key);
-          return _ChartData(date: dt, label: e.key, count: e.value);
-        })
-        .toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
-
-    return entries;
-  }
-
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Biểu đồ số lần mở cửa theo ngày"),
+        title: const Text('Nhiệt độ thang máy'),
         backgroundColor: CustomColors.appbarColor,
       ),
       body: Container(
@@ -105,7 +92,7 @@ class _ElevatorDoorOpenChartState extends State<ElevatorDoorOpenChart> {
                 : _chartData.isEmpty
                     ? const Center(
                         child: Text(
-                          'Không có dữ liệu.',
+                          'Không có dữ liệu nhiệt độ.',
                           style: TextStyle(color: Colors.white, fontSize: 16),
                         ),
                       )
@@ -120,38 +107,33 @@ class _ElevatorDoorOpenChartState extends State<ElevatorDoorOpenChart> {
                           padding: const EdgeInsets.all(12),
                           child: SfCartesianChart(
                             title: ChartTitle(
-                              text: "Số lần mở cửa theo ngày",
+                              text: 'Biểu đồ nhiệt độ theo thời gian',
                               textStyle: const TextStyle(
                                   fontSize: 14, fontWeight: FontWeight.bold),
                             ),
                             primaryXAxis: CategoryAxis(
-                              interval: 1,
                               labelRotation: 45,
                               majorGridLines: const MajorGridLines(width: 0),
-                              labelStyle: const TextStyle(
-                                  color: Colors.black, fontSize: 12),
+                              labelStyle:
+                                  const TextStyle(color: Colors.black, fontSize: 12),
                             ),
                             primaryYAxis: NumericAxis(
                               minimum: 0,
                               majorGridLines:
                                   const MajorGridLines(dashArray: [5, 5]),
-                              labelStyle: const TextStyle(
-                                  color: Colors.black, fontSize: 12),
+                              labelStyle:
+                                  const TextStyle(color: Colors.black, fontSize: 12),
+                              title: AxisTitle(text: 'Nhiệt độ (°C)'),
                             ),
                             tooltipBehavior: TooltipBehavior(enable: true),
                             series: <CartesianSeries<_ChartData, String>>[
-                              ColumnSeries<_ChartData, String>(
+                              LineSeries<_ChartData, String>(
                                 dataSource: _chartData,
-                                xValueMapper: (_ChartData data, _) =>
-                                    data.label,
-                                yValueMapper: (_ChartData data, _) =>
-                                    data.count,
-                                name: "Lượt mở",
-                                dataLabelSettings: const DataLabelSettings(
-                                  isVisible: true,
-                                  textStyle: TextStyle(
-                                      color: Colors.black, fontSize: 12),
-                                ),
+                                xValueMapper: (_ChartData data, _) => data.label,
+                                yValueMapper: (_ChartData data, _) => data.value,
+                                name: 'Nhiệt độ',
+                                markerSettings: const MarkerSettings(isVisible: true),
+                                dataLabelSettings: const DataLabelSettings(isVisible: false),
                               ),
                             ],
                           ),
@@ -165,10 +147,6 @@ class _ElevatorDoorOpenChartState extends State<ElevatorDoorOpenChart> {
 class _ChartData {
   final DateTime date;
   final String label;
-  final int count;
-  _ChartData({
-    required this.date,
-    required this.label,
-    required this.count,
-  });
+  final double value;
+  _ChartData({required this.date, required this.label, required this.value});
 }
