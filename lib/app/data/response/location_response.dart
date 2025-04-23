@@ -87,6 +87,7 @@ class BoardDB {
   bool? status;
   int? location;
   List<int>? authorizedUsers;
+  double? capacity;
 
   BoardDB(
       {this.id,
@@ -98,7 +99,8 @@ class BoardDB {
       this.description,
       this.status,
       this.location,
-      this.authorizedUsers});
+      this.authorizedUsers,
+      this.capacity});
 
   BoardDB.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -111,6 +113,7 @@ class BoardDB {
     status = json['status'];
     location = json['location'];
     authorizedUsers = json['authorized_users'].cast<int>();
+    capacity = json['capacity'];
   }
 
   Map<String, dynamic> toJson() {
@@ -125,6 +128,7 @@ class BoardDB {
     data['status'] = this.status;
     data['location'] = this.location;
     data['authorized_users'] = this.authorizedUsers;
+    data['capacity'] = this.capacity;
     return data;
   }
 }

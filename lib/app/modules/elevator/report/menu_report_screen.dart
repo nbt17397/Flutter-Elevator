@@ -2,7 +2,6 @@ import 'package:elevator/app/data/response/location_response.dart';
 import 'package:elevator/app/data/response/register_response.dart';
 import 'package:elevator/app/modules/elevator/alarm/alarm_elevator_screen.dart';
 import 'package:elevator/app/modules/elevator/report/bloc/register_bloc.dart';
-import 'package:elevator/app/modules/elevator/report/elevator_speed_chart.dart';
 import 'package:elevator/app/modules/elevator/report/elevator_temperature_chart.dart';
 import 'package:elevator/app/modules/elevator/report/elevator_door_open_chart.dart';
 import 'package:elevator/app/modules/elevator/report/elevator_usage_floor_chart.dart';
@@ -26,7 +25,6 @@ class _MenuReportScreenState extends State<MenuReportScreen> {
     {'title': 'Số lần đóng mở cửa thang máy', 'icon': Icons.elevator},
     {'title': 'Số lần mở cửa tầng', 'icon': Icons.door_front_door},
     {'title': 'Biến tầng nhiệt độ', 'icon': Icons.thermostat},
-    {'title': 'Tốc độ chạy thang máy ', 'icon': Icons.speed},
     {'title': 'Cảnh báo', 'icon': Icons.notifications_active_rounded},
   ];
 
@@ -162,19 +160,19 @@ class _MenuReportScreenState extends State<MenuReportScreen> {
                           );
                           break;
                         }
-                      case 3:
-                        {
-                          int tmp = GetIdByName(
-                              results: data.results, name: "TAG050");
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                              builder: (_) =>
-                                  ElevatorSpeedChart(registerId: tmp),
-                            ),
-                          );
-                          break;
-                        }
+                      // case 3:
+                      //   {
+                      //     int tmp = GetIdByName(
+                      //         results: data.results, name: "TAG050");
+                      //     Navigator.push(
+                      //       context,
+                      //       CupertinoPageRoute(
+                      //         builder: (_) =>
+                      //             ElevatorSpeedChart(registerId: tmp),
+                      //       ),
+                      //     );
+                      //     break;
+                      //   }
                       default:
                         {
                           int tmp = GetIdByName(

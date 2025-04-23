@@ -85,7 +85,9 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
 
   Future<void> _startStream() async {
     MediaStream stream = await navigator.mediaDevices.getUserMedia({
-      'video': true,
+      'video': {
+        'facingMode': 'environment',
+      },
       'audio': false,
     });
 
@@ -140,6 +142,23 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
     }
   }
 
+  Map<String, dynamic> getStatusInfo(int? statusCode) {
+    switch (statusCode) {
+      case 0:
+        return {'text': 'Trạng thái lỗi', 'color': Colors.red};
+      case 1:
+        return {'text': 'Trạng thái cháy', 'color': Colors.orange};
+      case 2:
+        return {'text': 'Không hoạt động', 'color': Colors.grey};
+      case 3:
+        return {'text': 'Trạng thái bình thường', 'color': Colors.green};
+      case 4:
+        return {'text': 'Trạng thái động đất', 'color': Colors.purple};
+      default:
+        return {'text': 'Không xác định', 'color': Colors.black};
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -147,10 +166,13 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
       appBar: AppBar(
         title: Consumer<MqttProvider>(
           builder: (context, mqttProvider, child) {
+            int? statusCode = getValueByTagName("TAG001");
+            final statusInfo = getStatusInfo(statusCode);
             return Text(
-              board.name!,
+              statusInfo['text'],
               style: TextStyle(
-                color: mqttProvider.isConnected ? Colors.green : Colors.red,
+                color: statusInfo['color'],
+                fontWeight: FontWeight.bold,
               ),
             );
           },
@@ -220,13 +242,11 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
       ),
       body: Consumer<MqttProvider>(builder: (context, mqttProvider, child) {
         String? message = mqttProvider.messages[topic];
-        print("------------");
 
         if (message != null && message.isNotEmpty) {
           try {
             Map<String, dynamic> jsonMap = json.decode(message);
             _resp = DataResponse.fromJson(jsonMap);
-            print("ID: ${_resp?.data![0].name}");
             int? value = getValueByTagName("TAG050");
             _controller.text = "${value! / 1000} m/s";
             print(value);
@@ -322,7 +342,7 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                   ),
                 ),
                 Container(
-                  height: size.height * .2,
+                  height: size.height * .22,
                   width: size.width,
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.6),
@@ -334,7 +354,7 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                       Expanded(
                           flex: 5,
                           child: Container(
-                            margin: const EdgeInsets.all(5),
+                            margin: const EdgeInsets.symmetric(horizontal: 5),
                             color: Colors.black.withOpacity(0.3),
                             child: Row(
                               children: [
@@ -351,7 +371,7 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                               radius: 28,
                                               backgroundColor:
                                                   getValueByTagName("TAG003") ==
-                                                          1
+                                                          2
                                                       ? Colors.green
                                                       : Colors.grey,
                                               child: Text(
@@ -366,58 +386,115 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                     )),
                                 Expanded(
                                   flex: 3,
-                                  child: Container(
-                                    color: Colors.transparent,
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Center(
-                                            child: SizedBox(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // Spacer(),
+                                      Container(
+                                        color: Colors.transparent,
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Center(
+                                                child: SizedBox(
+                                                  width: 40,
+                                                  height: 40,
+                                                  child: getValueByTagName(
+                                                              'TAG002') ==
+                                                          1
+                                                      ? Lottie.asset(
+                                                          'assets/jsons/arrow-up.json')
+                                                      : SizedBox(),
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                                child: Container(
                                               width: 40,
                                               height: 40,
-                                              child: getValueByTagName(
-                                                          'TAG002') ==
-                                                      1
-                                                  ? Lottie.asset(
-                                                      'assets/jsons/arrow-up.json')
-                                                  : SizedBox(),
+                                              decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                      color: Colors.white)),
+                                              child: Center(
+                                                  child: Text(
+                                                getFloorNameFromTag005(),
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 20,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              )),
+                                            )),
+                                            Expanded(
+                                              child: Center(
+                                                child: SizedBox(
+                                                  width: 40,
+                                                  height: 40,
+                                                  child: getValueByTagName(
+                                                              'TAG002') ==
+                                                          2
+                                                      ? Lottie.asset(
+                                                          'assets/jsons/arrow-down.json')
+                                                      : SizedBox(),
+                                                ),
+                                              ),
                                             ),
+                                          ],
+                                        ),
+                                      ),
+                                      Divider(thickness: 0.2),
+                                      Container(
+                                        margin: const EdgeInsets.fromLTRB(
+                                            5, 5, 5, 0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: List.generate(
+                                            getValueByTagName('TAG047') ?? 0,
+                                            (index) {
+                                              int value =
+                                                  getValueByTagName('TAG011') ??
+                                                      0;
+                                              bool isOn =
+                                                  ((value >> index) & 1) == 1;
+
+                                              return Container(
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 3),
+                                                width: 18,
+                                                height: 18,
+                                                decoration: BoxDecoration(
+                                                  color: isOn
+                                                      ? Colors.green
+                                                      : Colors.transparent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                  border: Border.all(
+                                                      color: Colors.white),
+                                                ),
+                                                child: Center(
+                                                  child: Text(
+                                                    index == 0
+                                                        ? 'G'
+                                                        : index
+                                                            .toString(), // Hiển thị 'G' nếu index = 0
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
                                           ),
                                         ),
-                                        Expanded(
-                                            child: Container(
-                                          width: 40,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              border: Border.all(
-                                                  color: Colors.white)),
-                                          child: Center(
-                                              child: Text(
-                                            getFloorNameFromTag005(),
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold),
-                                          )),
-                                        )),
-                                        Expanded(
-                                          child: Center(
-                                            child: SizedBox(
-                                              width: 40,
-                                              height: 40,
-                                              child: getValueByTagName(
-                                                          'TAG002') ==
-                                                      2
-                                                  ? Lottie.asset(
-                                                      'assets/jsons/arrow-down.json')
-                                                  : SizedBox(),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                      )
+                                    ],
                                   ),
                                 ),
                                 Expanded(
@@ -460,7 +537,6 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                 child: TextFormField(
                                   readOnly: true,
                                   enabled: false,
-                                  // initialValue: "${getValueByTagName("TAG050")} m/s",
                                   controller: _controller,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
@@ -493,7 +569,7 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                 child: TextFormField(
                                   readOnly: true,
                                   enabled: false,
-                                  initialValue: "0 kg",
+                                  initialValue: "${board.capacity} kg",
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 21,
@@ -535,7 +611,7 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                   ),
                 ),
                 Container(
-                  height: size.height * .22,
+                  height: size.height * .2,
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.6),
