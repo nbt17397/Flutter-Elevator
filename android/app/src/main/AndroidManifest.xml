@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
    <application
-        android:label="elevator"
+        android:label="Thang máy HPC"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 

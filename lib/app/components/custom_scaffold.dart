@@ -23,9 +23,9 @@ class CustomScaffold extends StatelessWidget {
             top: 1,
             right: 1,
             child: CircleAvatar(
-              child: Image.asset('assets/images/logo1.png'),
               radius: 55,
               backgroundColor: Colors.transparent,
+              child: Image.asset('assets/images/logo1.png'),
             ),
           ),
           SafeArea(

@@ -103,6 +103,8 @@ class MqttService {
       final builder = MqttClientPayloadBuilder();
       builder.addString(message);
       client!.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
+      print("✅ Đã publish thành công tới topic: $topic");
+      print("📨 Nội dung: $message");
     } else {
       print("⚠️ Không thể publish, client chưa kết nối!");
     }

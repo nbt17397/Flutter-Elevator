@@ -145,11 +145,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         ignorePointer: false,
                         child: GestureDetector(
-                          onTap: () => Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                  builder: (_) =>
-                                      ScadaElevatorScreen(board: item))),
+                          onTap: () {
+                            if (item.status!) {
+                              Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                      builder: (_) =>
+                                          ScadaElevatorScreen(board: item)));
+                            }
+                          },
                           child: Container(
                             width: 100,
                             margin: const EdgeInsets.symmetric(

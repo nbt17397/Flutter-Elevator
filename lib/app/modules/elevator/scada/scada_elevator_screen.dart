@@ -2,9 +2,11 @@ import 'package:elevator/app/components/blinking_brid_item.dart';
 import 'package:elevator/app/components/blinking_circle_button.dart';
 import 'package:elevator/app/data/response/data_response.dart';
 import 'package:elevator/app/data/response/location_response.dart';
-import 'package:elevator/app/modules/elevator/setting/setting_elevator_screen.dart';
+import 'package:elevator/app/modules/elevator/setting/maintenance_elevator_screen.dart';
+import 'package:elevator/app/modules/elevator/setting/control_elevator_screen.dart';
 import 'package:elevator/app/modules/elevator/setting/spec_elevator_screen.dart';
 import 'package:elevator/app/services/mqtt/mqtt_provider.dart';
+import 'package:elevator/app/services/reporitories/board_repo.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -25,53 +27,82 @@ class ScadaElevatorScreen extends StatefulWidget {
 
 class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
   BoardDB get board => widget.board;
-  String get topic => "from-client/${board.deviceId}";
+  String get topicSub => "from-client/${board.deviceId}";
+  String get topicPub => "client-from/${board.deviceId}";
   final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
   bool _isStreaming = false;
+  bool hasPermission = false;
+  BoardRepo boardRepo = BoardRepo();
   MqttProvider? mqttProvider;
   DataResponse? _resp;
   TextEditingController _controller = TextEditingController(text: '0 m/s');
   final List<Map<String, dynamic>> items = [
     {
       "id": 3,
-      "icon": Icons.local_fire_department,
+      "icon": Icons.local_fire_department, // Cảnh báo cháy
       "label": "Cảnh báo cháy",
-      "color": Colors.red
-    },
-    {
-      "id": 8,
-      "icon": Icons.lock,
-      "label": "Khóa thang",
-      "color": Colors.orange
+      "color": Colors.redAccent,
     },
     {
       "id": 0,
-      "icon": Icons.stop_circle,
-      "label": "Dừng khẩn",
-      "color": Colors.blue
+      "icon": Icons.build, // Bảo trì
+      "label": "Bảo trì",
+      "color": Colors.deepOrange,
     },
-    {"id": 16, "icon": Icons.phone, "label": "Liên lạc", "color": Colors.green},
+    {
+      "id": 7,
+      "icon": Icons.autorenew, // Tự động
+      "label": "Tự động",
+      "color": Colors.lightBlue,
+    },
+    {
+      "id": 8,
+      "icon": Icons.lock, // Khóa thang
+      "label": "Khóa thang",
+      "color": Colors.green,
+    },
     {
       "id": 11,
-      "icon": Icons.medical_services,
-      "label": "Cứu hộ",
-      "color": Colors.purple
+      "icon": Icons.medical_services, // Chạy giải cứu
+      "label": "Chạy giải cứu",
+      "color": Colors.purpleAccent,
     },
     {
       "id": 15,
-      "icon": Icons.star,
+      "icon": Icons.star, // Trạng thái VIP
       "label": "Trạng thái VIP",
-      "color": Colors.yellow
+      "color": Colors.amber,
     },
   ];
+
+  final Map<int, String> statusLabels = {
+    0: 'bảo trì',
+    1: 'tự học hành trình',
+    2: 'chạy về tầng',
+    3: 'chữa cháy quay về trạm gốc',
+    4: 'lính cứu hỏa chạy',
+    5: 'thất bại',
+    6: 'lái xe',
+    7: 'tự động',
+    8: 'khóa thang',
+    9: 'chờ',
+    10: 'tốc độ quay trở lại lớp cân bằng thấp',
+    11: 'chạy giải cứu',
+    12: 'điều chỉnh động cơ',
+    13: 'điều khiển bàn phím',
+    14: 'xác minh trạm gốc',
+    15: 'trạng thái VIP',
+    16: 'điện khẩn cấp',
+  };
 
   @override
   void initState() {
     super.initState();
-    _localRenderer.initialize(); // Chỉ khởi tạo, chưa chạy stream
+    _localRenderer.initialize();
+    _checkPermission();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       mqttProvider = Provider.of<MqttProvider>(context, listen: false);
-      mqttProvider?.subscribeTopic(topic);
+      mqttProvider?.subscribeTopic(topicSub);
     });
   }
 
@@ -81,6 +112,18 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
     _localRenderer.dispose();
     // mqttProvider?.unsubscribeTopic(topic);
     super.dispose();
+  }
+
+  Future<void> _checkPermission() async {
+    try {
+      final result =
+          await boardRepo.checkRequestControl(boardId: widget.board.id!);
+      hasPermission = result;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không thể kiểm tra quyền: ${e.toString()}')),
+      );
+    }
   }
 
   Future<void> _startStream() async {
@@ -185,17 +228,15 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             itemBuilder: (BuildContext bc) => [
               PopupMenuItem(
-                  value: "error_code",
-                  child:
-                      Text('Mã lỗi hệ thống', style: TextStyle(fontSize: 14))),
+                  value: "maintenances",
+                  child: Text('Bảo trì', style: TextStyle(fontSize: 14))),
               PopupMenuItem(
                   value: "parameters",
                   child: Text('Thông số kỹ thuật',
                       style: TextStyle(fontSize: 14))),
               PopupMenuItem(
                   value: "settings",
-                  child:
-                      Text('Cài đặt thông số', style: TextStyle(fontSize: 14))),
+                  child: Text('Điều khiển', style: TextStyle(fontSize: 14))),
               PopupMenuItem(
                   value: "datas",
                   child:
@@ -203,6 +244,15 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
             ],
             onSelected: (route) {
               switch (route) {
+                case 'maintenances':
+                  {
+                    Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                            builder: (_) => MaintenanceElevatorScreen(
+                                board: widget.board)));
+                    break;
+                  }
                 case 'datas':
                   {
                     Navigator.push(
@@ -215,10 +265,14 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                 case 'settings':
                   {
                     Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                            builder: (_) =>
-                                SettingElevatorScreen(board: widget.board)));
+                      context,
+                      CupertinoPageRoute(
+                        builder: (_) =>
+                            ControlRequestScreen(board: widget.board),
+                      ),
+                    ).then((_) {
+                      _checkPermission();
+                    });
                     break;
                   }
 
@@ -241,7 +295,7 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
         ],
       ),
       body: Consumer<MqttProvider>(builder: (context, mqttProvider, child) {
-        String? message = mqttProvider.messages[topic];
+        String? message = mqttProvider.messages[topicSub];
 
         if (message != null && message.isNotEmpty) {
           try {
@@ -337,7 +391,7 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                 const Padding(
                   padding: EdgeInsets.only(top: 15, bottom: 5),
                   child: Text(
-                    'THÔNG SỐ',
+                    'Thông số',
                     style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
@@ -367,19 +421,78 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                               title: 'Mở',
                                               backgroundColor: Colors.green,
                                               textColor: Colors.black)
-                                          : CircleAvatar(
-                                              radius: 28,
-                                              backgroundColor:
-                                                  getValueByTagName("TAG003") ==
-                                                          2
-                                                      ? Colors.green
-                                                      : Colors.grey,
-                                              child: Text(
-                                                "Mở",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
+                                          : GestureDetector(
+                                              onTap: () {
+                                                if (!hasPermission) {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                        content: Text(
+                                                            'Bạn không có quyền điều khiển thang.')),
+                                                  );
+                                                  return;
+                                                }
+
+                                                showCupertinoDialog<bool>(
+                                                  context: context,
+                                                  builder: (context) =>
+                                                      CupertinoAlertDialog(
+                                                    title: const Text(
+                                                      'Xác nhận mở thang',
+                                                      style: TextStyle(
+                                                          fontSize: 18),
+                                                    ),
+                                                    actions: [
+                                                      CupertinoDialogAction(
+                                                        child:
+                                                            const Text('Hủy'),
+                                                        onPressed: () =>
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(false),
+                                                      ),
+                                                      CupertinoDialogAction(
+                                                        isDestructiveAction:
+                                                            true,
+                                                        onPressed: () {
+                                                          Navigator.of(context).pop(
+                                                              true); // Đóng dialog trước
+                                                          mqttProvider
+                                                              .publishMessage(
+                                                                  topicPub, '''
+                                                                                {
+                                                                                  "from-client/${board.deviceId}": {
+                                                                                    "data": [
+                                                                                      {
+                                                                                        "value22": "3"
+                                                                                      }
+                                                                                    ]
+                                                                                  }
+                                                                                }
+                                                                                ''');
+                                                        },
+                                                        child: const Text(
+                                                            'Đồng ý'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                              child: CircleAvatar(
+                                                radius: 28,
+                                                backgroundColor:
+                                                    getValueByTagName(
+                                                                "TAG003") ==
+                                                            2
+                                                        ? Colors.green
+                                                        : Colors.grey,
+                                                child: Text(
+                                                  "Mở",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -460,32 +573,103 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                               bool isOn =
                                                   ((value >> index) & 1) == 1;
 
-                                              return Container(
-                                                margin:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 3),
-                                                width: 18,
-                                                height: 18,
-                                                decoration: BoxDecoration(
-                                                  color: isOn
-                                                      ? Colors.green
-                                                      : Colors.transparent,
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                  border: Border.all(
-                                                      color: Colors.white),
-                                                ),
-                                                child: Center(
-                                                  child: Text(
-                                                    index == 0
-                                                        ? 'G'
-                                                        : index
-                                                            .toString(), // Hiển thị 'G' nếu index = 0
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.bold,
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  if (!hasPermission) {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      SnackBar(
+                                                          content: Text(
+                                                              'Bạn không có quyền điều khiển thang.')),
+                                                    );
+                                                    return;
+                                                  }
+
+                                                  final value = 1 << index;
+
+                                                  showCupertinoDialog<bool>(
+                                                    context: context,
+                                                    builder: (context) =>
+                                                        CupertinoAlertDialog(
+                                                      title: const Text(
+                                                        'Xác nhận gọi thang',
+                                                        style: TextStyle(
+                                                            fontSize: 18),
+                                                      ),
+                                                      content: Padding(
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                                top: 12.0),
+                                                        child: Text(
+                                                            'Bạn có chắc chắn muốn gọi tầng $index không?'),
+                                                      ),
+                                                      actions: [
+                                                        CupertinoDialogAction(
+                                                          child:
+                                                              const Text('Hủy'),
+                                                          onPressed: () =>
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(false),
+                                                        ),
+                                                        CupertinoDialogAction(
+                                                          isDestructiveAction:
+                                                              true,
+                                                          onPressed: () {
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(
+                                                                    true); // Đóng dialog trước
+                                                            mqttProvider
+                                                                .publishMessage(
+                                                                    topicPub,
+                                                                    '''
+                                                            {
+                                                              "from-client/${board.deviceId}": {
+                                                                "data": [
+                                                                  {
+                                                                    "value11": "$value"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                            ''');
+                                                          },
+                                                          child: const Text(
+                                                              'Đồng ý'),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                                child: Container(
+                                                  margin: const EdgeInsets
+                                                      .symmetric(horizontal: 5),
+                                                  width: 22,
+                                                  height: 22,
+                                                  decoration: BoxDecoration(
+                                                    color: isOn
+                                                        ? Colors.green
+                                                        : Colors.transparent,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4),
+                                                    border: Border.all(
+                                                        color: Colors.white),
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      index == 0
+                                                          ? 'G'
+                                                          : index
+                                                              .toString(), // Hiển thị 'G' nếu index = 0
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
@@ -506,19 +690,78 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                                               title: 'Đóng',
                                               backgroundColor: Colors.red,
                                               textColor: Colors.black)
-                                          : CircleAvatar(
-                                              radius: 28,
-                                              backgroundColor:
-                                                  getValueByTagName("TAG003") ==
-                                                          4
-                                                      ? Colors.green
-                                                      : Colors.grey,
-                                              child: Text(
-                                                "Đóng",
-                                                style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
+                                          : GestureDetector(
+                                              onTap: () {
+                                                if (!hasPermission) {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                        content: Text(
+                                                            'Bạn không có quyền điều khiển thang.')),
+                                                  );
+                                                  return;
+                                                }
+
+                                                showCupertinoDialog<bool>(
+                                                  context: context,
+                                                  builder: (context) =>
+                                                      CupertinoAlertDialog(
+                                                    title: const Text(
+                                                      'Xác nhận đóng thang',
+                                                      style: TextStyle(
+                                                          fontSize: 18),
+                                                    ),
+                                                    actions: [
+                                                      CupertinoDialogAction(
+                                                        child:
+                                                            const Text('Hủy'),
+                                                        onPressed: () =>
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(false),
+                                                      ),
+                                                      CupertinoDialogAction(
+                                                        isDestructiveAction:
+                                                            true,
+                                                        onPressed: () {
+                                                          Navigator.of(context).pop(
+                                                              true); // Đóng dialog trước
+                                                          mqttProvider
+                                                              .publishMessage(
+                                                                  topicPub, '''
+                                                            {
+                                                              "from-client/${board.deviceId}": {
+                                                                "data": [
+                                                                  {
+                                                                    "value22": "4"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                            ''');
+                                                        },
+                                                        child: const Text(
+                                                            'Đồng ý'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                              child: CircleAvatar(
+                                                radius: 28,
+                                                backgroundColor:
+                                                    getValueByTagName(
+                                                                "TAG003") ==
+                                                            4
+                                                        ? Colors.green
+                                                        : Colors.grey,
+                                                child: Text(
+                                                  "Đóng",
+                                                  style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -603,10 +846,10 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
                     ],
                   ),
                 ),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(top: 15, bottom: 5),
                   child: Text(
-                    'CẢNH BÁO',
+                    'Trạng thái: ${statusLabels[getValueByTagName("TAG049") ?? -1] ?? "Không xác định"}',
                     style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),

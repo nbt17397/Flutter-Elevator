@@ -65,23 +65,28 @@ class _AlarmElevatorScreenState extends State<AlarmElevatorScreen> {
     }
   }
 
-  // 3. Chuyển dữ liệu thành List<Map> để hiển thị
-  List<Map<String, String>> get alarmList => historicalData
-          .where((item) => item.value != null && item.timestamp != null)
-          .map((item) {
-        // Format thời gian
-        DateTime? dt = DateTime.tryParse(item.timestamp!);
-        String formattedTime = dt != null ? _formatter.format(dt) : '';
+  List<Map<String, String>> get alarmList {
+    // Sắp xếp dữ liệu theo timestamp giảm dần
+    List<HistoricalData> sortedData = [...historicalData];
+    sortedData.sort((a, b) {
+      final dtA = DateTime.tryParse(a.timestamp ?? '') ?? DateTime(1970);
+      final dtB = DateTime.tryParse(b.timestamp ?? '') ?? DateTime(1970);
+      return dtB.compareTo(dtA); // Giảm dần
+    });
 
-        // Lấy mô tả từ map errorDescriptions
-        String desc = errorDescriptions[item.value!] ?? '';
-
-        return {
-          'value': item.value.toString(),
-          'time': formattedTime,
-          'description': desc,
-        };
-      }).toList();
+    return sortedData
+        .where((item) => item.value != null && item.timestamp != null)
+        .map((item) {
+      DateTime? dt = DateTime.tryParse(item.timestamp!);
+      String formattedTime = dt != null ? _formatter.format(dt) : '';
+      String desc = errorDescriptions[item.value!] ?? '';
+      return {
+        'value': item.value.toString(),
+        'time': formattedTime,
+        'description': desc,
+      };
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,6 +142,7 @@ class _AlarmElevatorScreenState extends State<AlarmElevatorScreen> {
                     } else if (alarmList.isEmpty) {
                       return const Center(
                         child: Text(
+                          
                           'Không có dữ liệu lỗi.',
                           style: TextStyle(color: Colors.white, fontSize: 16),
                         ),
@@ -145,33 +151,36 @@ class _AlarmElevatorScreenState extends State<AlarmElevatorScreen> {
 
                     return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        headingRowColor: MaterialStateColor.resolveWith(
-                            (_) => Colors.black54),
-                        columns: const [
-                          DataColumn(
-                            label: Text('Mã lỗi',
-                                style: TextStyle(color: Colors.white)),
-                          ),
-                          DataColumn(
-                            label: Text('Mô tả',
-                                style: TextStyle(color: Colors.white)),
-                          ),
-                          DataColumn(
-                            label: Text('Thời gian',
-                                style: TextStyle(color: Colors.white)),
-                          ),
-                        ],
-                        rows: alarmList.map((alarm) {
-                          return DataRow(cells: [
-                            DataCell(Text(alarm['value']!,
-                                style: const TextStyle(color: Colors.white))),
-                            DataCell(Text(alarm['description']!,
-                                style: const TextStyle(color: Colors.white))),
-                            DataCell(Text(alarm['time']!,
-                                style: const TextStyle(color: Colors.white))),
-                          ]);
-                        }).toList(),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: DataTable(
+                          headingRowColor: MaterialStateColor.resolveWith(
+                              (_) => Colors.black54),
+                          columns: const [
+                            // DataColumn(
+                            //   label: Text('Mã lỗi',
+                            //       style: TextStyle(color: Colors.white)),
+                            // ),
+                            DataColumn(
+                              label: Text('Mô tả',
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                            DataColumn(
+                              label: Text('Thời gian',
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                          ],
+                          rows: alarmList.map((alarm) {
+                            return DataRow(cells: [
+                              // DataCell(Text(alarm['value']!,
+                              //     style: const TextStyle(color: Colors.white))),
+                              DataCell(Text(alarm['description']!,
+                                  style: const TextStyle(color: Colors.white))),
+                              DataCell(Text(alarm['time']!,
+                                  style: const TextStyle(color: Colors.white))),
+                            ]);
+                          }).toList(),
+                        ),
                       ),
                     );
                   },
