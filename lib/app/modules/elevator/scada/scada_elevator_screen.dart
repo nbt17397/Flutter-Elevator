@@ -318,7 +318,7 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
           decoration: const BoxDecoration(
             image: DecorationImage(
               image: AssetImage('assets/images/bg1.png'),
-              fit: BoxFit.cover,
+              fit: BoxFit.none,
             ),
           ),
           child: SingleChildScrollView(
