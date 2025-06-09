@@ -26,6 +26,27 @@ class BoardRepo extends ApiProvider {
     }
   }
 
+  Future<RegisterResponse> getRegisterByGroupID({required int id}) async {
+    try {
+      Response _resp = await httpClient.get(
+        'https://api-elevator.haophuong.com/groups/$id/registers/',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      if (_resp.statusCode == 200) {
+        return RegisterResponse.fromJson(_resp.data);
+      } else {
+        throw Exception('An unknown error occurred');
+      }
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
   Future<RequestControlResponse> getRequestControlByBoardID(
       {required int id}) async {
     try {

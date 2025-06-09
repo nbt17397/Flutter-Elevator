@@ -92,7 +92,7 @@ class _AlarmElevatorScreenState extends State<AlarmElevatorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cảnh báo'),
+        title: const Text('Thông báo'),
         backgroundColor: CustomColors.appbarColor,
         centerTitle: true,
       ),
@@ -106,89 +106,89 @@ class _AlarmElevatorScreenState extends State<AlarmElevatorScreen> {
             fit: BoxFit.cover,
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Danh sách lỗi thang máy',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Builder(
-                  builder: (_) {
-                    if (isLoading) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      );
-                    } else if (errorMessage.isNotEmpty) {
-                      return Center(
-                        child: Text(
-                          'Lỗi: $errorMessage',
-                          style:
-                              const TextStyle(color: Colors.red, fontSize: 16),
-                        ),
-                      );
-                    } else if (alarmList.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          
-                          'Không có dữ liệu lỗi.',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      );
-                    }
+        // child: Column(
+        //   crossAxisAlignment: CrossAxisAlignment.start,
+        //   children: [
+        //     const Text(
+        //       'Danh sách lỗi thang máy',
+        //       style: TextStyle(
+        //         fontSize: 18,
+        //         fontWeight: FontWeight.bold,
+        //         color: Colors.white,
+        //       ),
+        //     ),
+        //     const SizedBox(height: 10),
+        //     Expanded(
+        //       child: Container(
+        //         padding: const EdgeInsets.all(8),
+        //         decoration: BoxDecoration(
+        //           color: Colors.black.withOpacity(0.6),
+        //           borderRadius: BorderRadius.circular(6),
+        //         ),
+        //         child: Builder(
+        //           builder: (_) {
+        //             if (isLoading) {
+        //               return const Center(
+        //                 child: CircularProgressIndicator(color: Colors.white),
+        //               );
+        //             } else if (errorMessage.isNotEmpty) {
+        //               return Center(
+        //                 child: Text(
+        //                   'Lỗi: $errorMessage',
+        //                   style:
+        //                       const TextStyle(color: Colors.red, fontSize: 16),
+        //                 ),
+        //               );
+        //             } else if (alarmList.isEmpty) {
+        //               return const Center(
+        //                 child: Text(
 
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: DataTable(
-                          headingRowColor: MaterialStateColor.resolveWith(
-                              (_) => Colors.black54),
-                          columns: const [
-                            // DataColumn(
-                            //   label: Text('Mã lỗi',
-                            //       style: TextStyle(color: Colors.white)),
-                            // ),
-                            DataColumn(
-                              label: Text('Mô tả',
-                                  style: TextStyle(color: Colors.white)),
-                            ),
-                            DataColumn(
-                              label: Text('Thời gian',
-                                  style: TextStyle(color: Colors.white)),
-                            ),
-                          ],
-                          rows: alarmList.map((alarm) {
-                            return DataRow(cells: [
-                              // DataCell(Text(alarm['value']!,
-                              //     style: const TextStyle(color: Colors.white))),
-                              DataCell(Text(alarm['description']!,
-                                  style: const TextStyle(color: Colors.white))),
-                              DataCell(Text(alarm['time']!,
-                                  style: const TextStyle(color: Colors.white))),
-                            ]);
-                          }).toList(),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
+        //                   'Không có dữ liệu lỗi.',
+        //                   style: TextStyle(color: Colors.white, fontSize: 16),
+        //                 ),
+        //               );
+        //             }
+
+        //             return SingleChildScrollView(
+        //               scrollDirection: Axis.horizontal,
+        //               child: SingleChildScrollView(
+        //                 scrollDirection: Axis.vertical,
+        //                 child: DataTable(
+        //                   headingRowColor: MaterialStateColor.resolveWith(
+        //                       (_) => Colors.black54),
+        //                   columns: const [
+        //                     // DataColumn(
+        //                     //   label: Text('Mã lỗi',
+        //                     //       style: TextStyle(color: Colors.white)),
+        //                     // ),
+        //                     DataColumn(
+        //                       label: Text('Mô tả',
+        //                           style: TextStyle(color: Colors.white)),
+        //                     ),
+        //                     DataColumn(
+        //                       label: Text('Thời gian',
+        //                           style: TextStyle(color: Colors.white)),
+        //                     ),
+        //                   ],
+        //                   rows: alarmList.map((alarm) {
+        //                     return DataRow(cells: [
+        //                       // DataCell(Text(alarm['value']!,
+        //                       //     style: const TextStyle(color: Colors.white))),
+        //                       DataCell(Text(alarm['description']!,
+        //                           style: const TextStyle(color: Colors.white))),
+        //                       DataCell(Text(alarm['time']!,
+        //                           style: const TextStyle(color: Colors.white))),
+        //                     ]);
+        //                   }).toList(),
+        //                 ),
+        //               ),
+        //             );
+        //           },
+        //         ),
+        //       ),
+        //     ),
+        //   ],
+        // ),
       ),
     );
   }

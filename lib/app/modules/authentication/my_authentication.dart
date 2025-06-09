@@ -3,6 +3,7 @@ import 'package:elevator/app/modules/home/menu_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:model_viewer_plus/model_viewer_plus.dart';
 
 import '../../../config/theme/my_theme.dart';
 import '../../../config/translations/localization_service.dart';
@@ -128,6 +129,18 @@ class _MyAuthenticationState extends State<MyAuthentication> {
                   if (box.containsKey(0)) {
                     ApiProvider.setBearerAuth(userModel.accessToken);
                     return MenuScreen();
+                    // return Scaffold(
+                    //   body: ModelViewer(
+                    //     src:
+                    //         // 'assets/3d/astronaut.glb',
+                    //         'assets/3d/3d.glb',
+                    //     alt: "Mô hình 3D",
+                    //     ar: true,
+                    //     autoRotate: true,
+                    //     cameraControls: true,
+                    //     backgroundColor: Colors.white70,
+                    //   ),
+                    // );
                   } else {
                     return const LoginScreen();
                   }

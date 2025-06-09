@@ -7,6 +7,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:badges/badges.dart' as badges;
 
+import '../motor/control/device_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -133,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       return badges.Badge(
                         showBadge: item.status!,
                         position:
-                            badges.BadgePosition.topEnd(top: -12, end: -8),
+                            badges.BadgePosition.topEnd(top: -12, end: -2),
                         badgeContent: Text('3'),
                         badgeStyle: badges.BadgeStyle(
                           shape: badges.BadgeShape.square,
@@ -150,8 +152,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.push(
                                   context,
                                   CupertinoPageRoute(
-                                      builder: (_) =>
-                                          ScadaElevatorScreen(board: item)));
+                                      builder: (_) => DeviceScreen(
+                                            board: item,
+                                          )));
                             }
                           },
                           child: Container(

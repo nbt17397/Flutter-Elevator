@@ -87,31 +87,31 @@ class _SettingScreenState extends State<SettingScreen> {
                   ),
                 ),
                 SizedBox(height: 20),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  margin: EdgeInsets.only(bottom: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.devices_other_outlined,
-                              color: Colors.blueAccent),
-                          SizedBox(width: 10),
-                          Text('Thêm thiết bị',
-                              style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
-                      IconButton(
-                          onPressed: () => _showAddDeviceDialog(context),
-                          icon: Icon(Icons.add_box, color: Colors.white))
-                    ],
-                  ),
-                ),
+                // Container(
+                //   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                //   margin: EdgeInsets.only(bottom: 2),
+                //   decoration: BoxDecoration(
+                //     color: Colors.black.withOpacity(0.6),
+                //     borderRadius: BorderRadius.circular(6),
+                //   ),
+                //   child: Row(
+                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //     children: [
+                //       Row(
+                //         children: [
+                //           Icon(Icons.devices_other_outlined,
+                //               color: Colors.blueAccent),
+                //           SizedBox(width: 10),
+                //           Text('Thêm thiết bị',
+                //               style: TextStyle(color: Colors.white)),
+                //         ],
+                //       ),
+                //       IconButton(
+                //           onPressed: () => _showAddDeviceDialog(context),
+                //           icon: Icon(Icons.add_box, color: Colors.white))
+                //     ],
+                //   ),
+                // ),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   margin: EdgeInsets.only(bottom: 2),

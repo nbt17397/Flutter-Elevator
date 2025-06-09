@@ -14,7 +14,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     on<GetLocationByUser>((event, emit) async {
       emit(GetLocationLoading());
       try {
-        LocationResponse resp = await _userRepo.getLocation();
+        LocationResponse resp = await _userRepo.getLocationByUser();
         List<LocationDB> locations = resp.results ?? [];
 
         Position position = await Geolocator.getCurrentPosition(

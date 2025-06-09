@@ -53,7 +53,8 @@ dependencies:
   syncfusion_flutter_charts: 27.2.5
   syncfusion_flutter_core: 27.2.5
   floating_bottom_navigation_bar: ^1.5.2
-  
+  model_viewer_plus: ^1.9.2
+
   hive: ^2.2.3  # local database (SQFlite replacement)
   hive_flutter: ^1.1.0 # make it easy to use hive (no need for path provider)
   shared_preferences: ^2.2.3 
@@ -98,6 +99,7 @@ flutter:
     - assets/fonts/
     - assets/jsons/
     - assets/icon/
+    - assets/3d/
 
   fonts:
     - family: Poppins
