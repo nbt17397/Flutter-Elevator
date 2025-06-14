@@ -1,4 +1,4 @@
-package com.haophuong.elevator
+package com.haophuong.controller
 
 import io.flutter.embedding.android.FlutterActivity
 

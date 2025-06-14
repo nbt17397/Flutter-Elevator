@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'app/data/local/my_hive.dart';
 import 'app/data/local/my_shared_pref.dart';
@@ -25,6 +26,7 @@ Future<void> main() async {
     hive.registerAdapter(UserModelAdapter());
   });
 
+  WakelockPlus.enable();
   // init shared preference
   await MySharedPref.init();
   await Hive.openBox<UserModel>('userModel');

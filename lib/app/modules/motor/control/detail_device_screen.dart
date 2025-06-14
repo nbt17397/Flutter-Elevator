@@ -1,8 +1,10 @@
 import 'package:elevator/app/data/response/register_response.dart';
+import 'package:elevator/app/modules/motor/control/device_history_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../config/shared/colors.dart';
+import 'device_setting_screen.dart';
 
 class DeviceDetailScreen extends StatefulWidget {
   final RegisterDB register;
@@ -116,13 +118,15 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
                     _BottomButton(
                       icon: Icons.history,
                       label: "Lịch sử",
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(context, CupertinoPageRoute(builder: (context) => DeviceHistoryScreen(register: register)));
+                      },
                     ),
                     _BottomButton(
                       icon: Icons.settings,
                       label: "Cài đặt",
                       onTap: () {
-                        // handle
+                        Navigator.push(context, CupertinoPageRoute(builder: (context) => DeviceSettingsScreen(register: register)));
                       },
                     ),
                   ],

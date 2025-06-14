@@ -55,8 +55,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
               icon: Icon(Icons.electric_bolt_rounded)),
           IconButton(
               onPressed: () {
-                Navigator.push(context,
-                    CupertinoPageRoute(builder: (_) => SpecDetailScreen()));
+                // Navigator.push(context,
+                //     CupertinoPageRoute(builder: (_) => SpecDetailScreen()));
               },
               icon: Icon(Icons.add_to_photos_outlined))
         ],
