@@ -24,7 +24,7 @@ class DeviceScreen extends StatefulWidget {
 class _DeviceScreenState extends State<DeviceScreen> {
   BoardDB get board => widget.board;
   String get topic => "from-client/${board.deviceId}";
-  MqttProvider? mqttProvider;
+  late MqttProvider mqttProvider;
   DataResponse? _resp;
   int? selectedGroupId;
   late ControlBloc controlBloc;
@@ -32,11 +32,21 @@ class _DeviceScreenState extends State<DeviceScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      mqttProvider = Provider.of<MqttProvider>(context, listen: false);
+      mqttProvider.subscribeTopic(topic);
+    });
     controlBloc = ControlBloc();
     if (board.groups != null && board.groups!.isNotEmpty) {
       selectedGroupId = board.groups!.first.id;
       controlBloc.add(FetchRegisters(selectedGroupId!));
     }
+  }
+
+  @override
+  void dispose() {
+    mqttProvider.unsubscribeTopic(topic);
+    super.dispose();
   }
 
   @override
