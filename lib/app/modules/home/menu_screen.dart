@@ -55,7 +55,7 @@ class _MenuScreenState extends State<MenuScreen> {
                 currentIndex: snapshot.data ?? 0,
                 backgroundColor: CustomColors.appbarColor,
                 items: [
-                  FloatingNavbarItem(icon: Icons.home, title: 'Thang máy'),
+                  FloatingNavbarItem(icon: Icons.home, title: 'Khu vực'),
                   FloatingNavbarItem(
                       icon: Icons.notifications_active_outlined,
                       title: 'Thông báo'),

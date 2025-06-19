@@ -1,22 +1,24 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../config/shared/colors.dart';
 
 enum ViewMode { day, month, year }
 
-class EnergyReportScreen extends StatefulWidget {
-  const EnergyReportScreen({super.key});
+class ParameterReportScreen extends StatefulWidget {
+  const ParameterReportScreen({super.key});
 
   @override
-  State<EnergyReportScreen> createState() => _EnergyReportScreenState();
+  State<ParameterReportScreen> createState() => _ParameterReportScreenState();
 }
 
-class _EnergyReportScreenState extends State<EnergyReportScreen> {
+class _ParameterReportScreenState extends State<ParameterReportScreen> {
   ViewMode _viewMode = ViewMode.month;
   DateTime selectedDate = DateTime.now();
-  late List<EnergyData> _data;
+  late List<WaterQualityData> _data;
   bool isConnected = true;
   bool _blink = true;
   Timer? _blinkTimer;
@@ -35,10 +37,12 @@ class _EnergyReportScreenState extends State<EnergyReportScreen> {
   }
 
   Future<void> _checkConnection() async {
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 1));
     setState(() {
       isConnected = false;
       _data = _generateDummyData();
+
+      // Bắt đầu hiệu ứng nhấp nháy
       _blinkTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
         setState(() {
           _blink = !_blink;
@@ -47,38 +51,56 @@ class _EnergyReportScreenState extends State<EnergyReportScreen> {
     });
   }
 
-  List<EnergyData> _generateDummyData() {
-    double baseValue;
-    int count;
-    String Function(int) labelBuilder;
+  List<WaterQualityData> _generateDummyData() {
+    List<WaterQualityData> result = [];
+    final pattern = [0.5, -0.3, 0.4, -0.2, 0.6, -0.4];
+    double oxy = 7.0, pH = 7.2, temp = 27.0;
 
     switch (_viewMode) {
-      case ViewMode.day:
-        baseValue = 15;
-        count = 30;
-        labelBuilder = (i) => '${i + 1}';
+      case ViewMode.year:
+        for (int i = 0; i < 5; i++) {
+          final delta = pattern[i % pattern.length];
+          oxy += delta;
+          pH += delta * 0.2;
+          temp += delta * 1.5;
+          result.add(WaterQualityData(
+            'Thg ${i + 1}',
+            double.parse(oxy.toStringAsFixed(2)),
+            double.parse(pH.toStringAsFixed(2)),
+            double.parse(temp.toStringAsFixed(2)),
+          ));
+        }
         break;
       case ViewMode.month:
-        baseValue = 200;
-        count = 12;
-        labelBuilder = (i) => 'Thg ${i + 1}';
+        for (int i = 0; i < 30; i++) {
+          final delta = pattern[i % pattern.length];
+          oxy += delta;
+          pH += delta * 0.2;
+          temp += delta * 1.5;
+          final date = DateTime(selectedDate.year, selectedDate.month, i + 1);
+          result.add(WaterQualityData(
+            DateFormat('dd/MM').format(date),
+            double.parse(oxy.toStringAsFixed(2)),
+            double.parse(pH.toStringAsFixed(2)),
+            double.parse(temp.toStringAsFixed(2)),
+          ));
+        }
         break;
-      case ViewMode.year:
-        baseValue = 800;
-        count = 5;
-        labelBuilder = (i) => 'Thg ${i + 1}';
+      case ViewMode.day:
+        for (int i = 0; i < 48; i++) {
+          final delta = pattern[i % pattern.length];
+          oxy += delta;
+          pH += delta * 0.2;
+          temp += delta * 1.5;
+          final time = selectedDate.add(Duration(minutes: i * 30));
+          result.add(WaterQualityData(
+            DateFormat('HH:mm').format(time),
+            double.parse(oxy.toStringAsFixed(2)),
+            double.parse(pH.toStringAsFixed(2)),
+            double.parse(temp.toStringAsFixed(2)),
+          ));
+        }
         break;
-    }
-
-    final List<EnergyData> result = [];
-    double current = baseValue;
-    final List<double> pattern = [5, -3, 4, -2, 6, -4];
-
-    for (int i = 0; i < count; i++) {
-      final delta = pattern[i % pattern.length];
-      current += delta;
-      result.add(EnergyData(
-          labelBuilder(i), double.parse(current.toStringAsFixed(1))));
     }
 
     return result;
@@ -99,7 +121,7 @@ class _EnergyReportScreenState extends State<EnergyReportScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Báo cáo điện năng'),
+        title: const Text('Báo cáo chất lượng nước'),
         centerTitle: true,
         backgroundColor: CustomColors.appbarColor,
       ),
@@ -123,7 +145,7 @@ class _EnergyReportScreenState extends State<EnergyReportScreen> {
                       const TextStyle(color: Colors.white, fontSize: 11),
                 ),
                 title: ChartTitle(
-                  text: 'Tiêu thụ điện năng',
+                  text: 'Thông số chất lượng nước',
                   textStyle: const TextStyle(color: Colors.white),
                 ),
                 legend: Legend(
@@ -132,14 +154,29 @@ class _EnergyReportScreenState extends State<EnergyReportScreen> {
                 ),
                 tooltipBehavior: TooltipBehavior(enable: true),
                 series: <CartesianSeries>[
-                  ColumnSeries<EnergyData, String>(
+                  LineSeries<WaterQualityData, String>(
+                    name: 'Oxy (mg/L)',
                     dataSource: _data,
-                    xValueMapper: (EnergyData d, _) => d.label,
-                    yValueMapper: (EnergyData d, _) => d.kwh,
-                    name: 'kWh',
-                    color: Colors.orange,
-                    borderRadius: BorderRadius.circular(4),
-                    dataLabelSettings: const DataLabelSettings(isVisible: true),
+                    xValueMapper: (d, _) => d.label,
+                    yValueMapper: (d, _) => d.oxy,
+                    color: Colors.blue,
+                    markerSettings: const MarkerSettings(isVisible: true),
+                  ),
+                  LineSeries<WaterQualityData, String>(
+                    name: 'pH',
+                    dataSource: _data,
+                    xValueMapper: (d, _) => d.label,
+                    yValueMapper: (d, _) => d.ph,
+                    color: Colors.green,
+                    markerSettings: const MarkerSettings(isVisible: true),
+                  ),
+                  LineSeries<WaterQualityData, String>(
+                    name: 'Nhiệt độ (°C)',
+                    dataSource: _data,
+                    xValueMapper: (d, _) => d.label,
+                    yValueMapper: (d, _) => d.temp,
+                    color: Colors.redAccent,
+                    markerSettings: const MarkerSettings(isVisible: true),
                   ),
                 ],
               ),
@@ -154,7 +191,7 @@ class _EnergyReportScreenState extends State<EnergyReportScreen> {
                     const SizedBox(width: 6),
                     AnimatedOpacity(
                       opacity: _blink ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 1000),
+                      duration: const Duration(milliseconds: 1500),
                       child: const Text(
                         'Không thể kết nối tới máy chủ.',
                         style: TextStyle(
@@ -187,18 +224,18 @@ class _EnergyReportScreenState extends State<EnergyReportScreen> {
         child: Center(
           child: _viewMode == ViewMode.year
               ? DropdownButton<int>(
-                  value: 2025,
+                  value: selectedDate.year,
                   dropdownColor: Colors.black,
                   underline: Container(),
-                  onChanged: (_) {}, // cố định
-                  items: const [
+                  onChanged: (_) {}, // Không thay đổi
+                  items: [
                     DropdownMenuItem(
                       value: 2025,
                       child: Text(
                         'Năm 2025',
                         style: TextStyle(color: Colors.white, fontSize: 14),
                       ),
-                    ),
+                    )
                   ],
                 )
               : Row(
@@ -212,8 +249,7 @@ class _EnergyReportScreenState extends State<EnergyReportScreen> {
                         onChanged: (value) {
                           if (value != null) {
                             setState(() {
-                              selectedDate =
-                                  DateTime(selectedDate.year, value);
+                              selectedDate = DateTime(selectedDate.year, value);
                               _data = _generateDummyData();
                             });
                           }
@@ -298,9 +334,11 @@ class _EnergyReportScreenState extends State<EnergyReportScreen> {
   }
 }
 
-class EnergyData {
+class WaterQualityData {
   final String label;
-  final double kwh;
+  final double oxy;
+  final double ph;
+  final double temp;
 
-  EnergyData(this.label, this.kwh);
+  WaterQualityData(this.label, this.oxy, this.ph, this.temp);
 }

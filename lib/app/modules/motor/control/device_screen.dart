@@ -13,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
+import '../parameter_report/parameter_report_screen.dart';
+
 class DeviceScreen extends StatefulWidget {
   final BoardDB board;
   const DeviceScreen({super.key, required this.board});
@@ -65,10 +67,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
               icon: Icon(Icons.electric_bolt_rounded)),
           IconButton(
               onPressed: () {
-                // Navigator.push(context,
-                //     CupertinoPageRoute(builder: (_) => SpecDetailScreen()));
+                Navigator.push(context,
+                    CupertinoPageRoute(builder: (_) => ParameterReportScreen()));
               },
-              icon: Icon(Icons.add_to_photos_outlined))
+              icon: Icon(Icons.data_thresholding_outlined))
         ],
       ),
       body: Consumer<MqttProvider>(builder: (context, mqttProvider, child) {
