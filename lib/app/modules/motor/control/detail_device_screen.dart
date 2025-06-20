@@ -73,36 +73,36 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 8),
-              width: double.infinity,
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    isOn ? "Đang hoạt động" : "Ngưng hoạt động",
-                    style: TextStyle(
-                      color: isOn ? Colors.green : Colors.red,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  CupertinoSwitch(
-                    value: isOn,
-                    onChanged: (value) {
-                      setState(() {
-                        isOn = value;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
+            // Container(
+            //   margin: EdgeInsets.symmetric(horizontal: 8),
+            //   width: double.infinity,
+            //   padding: EdgeInsets.all(16),
+            //   decoration: BoxDecoration(
+            //     color: Colors.white.withOpacity(0.6),
+            //     borderRadius: BorderRadius.circular(6),
+            //   ),
+            //   child: Column(
+            //     children: [
+            //       Text(
+            //         isOn ? "Đang hoạt động" : "Ngưng hoạt động",
+            //         style: TextStyle(
+            //           color: isOn ? Colors.green : Colors.red,
+            //           fontSize: 18,
+            //           fontWeight: FontWeight.w600,
+            //         ),
+            //       ),
+            //       const SizedBox(height: 8),
+            //       CupertinoSwitch(
+            //         value: isOn,
+            //         onChanged: (value) {
+            //           setState(() {
+            //             isOn = value;
+            //           });
+            //         },
+            //       ),
+            //     ],
+            //   ),
+            // ),
             const Spacer(),
             Container(
               decoration: BoxDecoration(
