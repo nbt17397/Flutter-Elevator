@@ -147,6 +147,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   }
                   mqttProvider.publishMessage(
                     'controller_1/restart/set',
+                    json.encode({"status": 0}),
+                  );
+                  mqttProvider.publishMessage(
+                    'controller_1/restart/set',
                     json.encode({"status": 1}),
                   );
                 }
