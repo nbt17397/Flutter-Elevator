@@ -145,6 +145,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   for (var element in state.registers) {
                     mqttProvider.subscribeTopic('${element.topic}state');
                   }
+                  mqttProvider.publishMessage('controller_1/restart', '{}');
                 }
               },
               child: BlocBuilder<ControlBloc, ControlState>(
