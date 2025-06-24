@@ -33,6 +33,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       mqttProvider = Provider.of<MqttProvider>(context, listen: false);
+      mqttProvider.publishMessage(
+        'controller_1/restart/set',
+        json.encode({"status": 0}),
+      );
+      mqttProvider.publishMessage(
+        'controller_1/restart/set',
+        json.encode({"status": 1}),
+      );
     });
     controlBloc = ControlBloc();
     if (board.groups != null && board.groups!.isNotEmpty) {
@@ -145,14 +153,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   for (var element in state.registers) {
                     mqttProvider.subscribeTopic('${element.topic}state');
                   }
-                  mqttProvider.publishMessage(
-                    'controller_1/restart/set',
-                    json.encode({"status": 0}),
-                  );
-                  mqttProvider.publishMessage(
-                    'controller_1/restart/set',
-                    json.encode({"status": 1}),
-                  );
+                  // mqttProvider.publishMessage(
+                  //   'controller_1/restart/set',
+                  //   json.encode({"status": 0}),
+                  // );
+                  // mqttProvider.publishMessage(
+                  //   'controller_1/restart/set',
+                  //   json.encode({"status": 1}),
+                  // );
                 }
               },
               child: BlocBuilder<ControlBloc, ControlState>(
