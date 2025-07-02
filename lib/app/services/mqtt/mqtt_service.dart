@@ -90,7 +90,7 @@ class MqttService {
   void unsubscribe(String topic) {
     if (client != null &&
         client!.connectionStatus?.state == MqttConnectionState.connected) {
-      client!.unsubscribe(topic);
+      client!.unsubscribe(topic, expectAcknowledge: true);
       print("🚫 Unsubscribed: $topic");
     } else {
       print("⚠️ Không thể unsubscribe, client chưa kết nối!");

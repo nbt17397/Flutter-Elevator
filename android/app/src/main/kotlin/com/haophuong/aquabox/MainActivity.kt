@@ -1,4 +1,4 @@
-package com.haophuong.elevator
+package com.haophuong.aquabox
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,11 +1,10 @@
 import 'package:elevator/app/data/response/location_response.dart';
-import 'package:elevator/app/modules/elevator/scada/scada_elevator_screen.dart';
+import 'package:elevator/app/modules/aquabox/batch/batch_list_screen.dart';
 import 'package:elevator/app/modules/home/bloc/location_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:badges/badges.dart' as badges;
+import '../../data/models/menu_item.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,9 +14,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late GoogleMapController _controller;
   LocationDB? _selectedMarkerInfo;
-  Set<Marker> _markers = {};
   late LocationBloc locationBloc;
 
   @override
@@ -26,16 +23,10 @@ class _HomeScreenState extends State<HomeScreen> {
     locationBloc = LocationBloc()..add(GetLocationByUser());
   }
 
-  void _onMarkerTapped(LocationDB? location) {
-    setState(() {
-      _selectedMarkerInfo = location;
-    });
-    _controller.showMarkerInfoWindow(MarkerId(location!.id.toString()));
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // nền trắng toàn màn
       body: BlocListener<LocationBloc, LocationState>(
         bloc: locationBloc,
         listener: (context, state) {
@@ -45,64 +36,17 @@ class _HomeScreenState extends State<HomeScreen> {
           bloc: locationBloc,
           builder: (context, state) {
             if (state is GetLocationLoading) {
-              return Container(
-                color: Colors.black.withOpacity(0.5),
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
-              );
+              return const Center(child: CircularProgressIndicator());
             }
             if (state is GetLocationFailure) {
               return Center(child: Text("Error: ${state.error}"));
             }
             if (state is GetLocationLoaded) {
-              _markers = state.locations.map((location) {
-                return Marker(
-                  markerId: MarkerId(location.id.toString()),
-                  position: LatLng(location.lat!, location.lng!),
-                  infoWindow: InfoWindow(title: location.name),
-                  onTap: () => _onMarkerTapped(location),
-                );
-              }).toSet();
-
-              return Stack(
-                children: [
-                  Positioned.fill(
-                    child: GoogleMap(
-                      onMapCreated: (controller) {
-                        setState(() {
-                          _controller = controller;
-                        });
-
-                        if (state.locations.isNotEmpty) {
-                          Future.delayed(const Duration(milliseconds: 300), () {
-                            _moveCameraToFirstLocation(state.locations);
-                          });
-                        }
-                      },
-                      initialCameraPosition: CameraPosition(
-                        target: LatLng(
-                            state.currentLatitude, state.currentLongitude),
-                        zoom: 12,
-                      ),
-                      markers: _markers,
-                      myLocationEnabled: true,
-                      myLocationButtonEnabled: true,
-                      zoomControlsEnabled: false,
-                    ),
-                  ),
-                  if (_selectedMarkerInfo != null)
-                    Positioned(
-                      top: 20,
-                      left: 20,
-                      right: 20,
-                      child: _buildMarkerInfoCard(
-                          _selectedMarkerInfo!, state.locations),
-                    ),
-                ],
-              );
+              _selectedMarkerInfo = state.locations[0];
+              return _buildMarkerInfoCard(
+                  _selectedMarkerInfo!, state.locations);
             }
-            return Center(child: Text("No Data Available"));
+            return const Center(child: Text("No Data Available"));
           },
         ),
       ),
@@ -110,136 +54,57 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMarkerInfoCard(LocationDB location, List<LocationDB> locations) {
-    return Stack(
-      children: [
-        Container(
-          padding: EdgeInsets.all(12),
-          margin: EdgeInsets.only(top: 16), // Tạo khoảng trống cho nút đóng
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.only(top: 30, left: 12, right: 12),
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDropdown(locations),
+          Row(
             children: [
-              _buildDropdown(locations),
-              Text(
-                location.description!,
-                style: TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-              const Divider(thickness: .4),
-              Row(
-                children: location.boards?.map((item) {
-                      return badges.Badge(
-                        showBadge: item.status!,
-                        position:
-                            badges.BadgePosition.topEnd(top: -12, end: -8),
-                        badgeContent: Text('3'),
-                        badgeStyle: badges.BadgeStyle(
-                          shape: badges.BadgeShape.square,
-                          badgeColor: Colors.red,
-                          padding: EdgeInsets.all(5),
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.white, width: 2),
-                          elevation: 0,
-                        ),
-                        ignorePointer: false,
-                        child: GestureDetector(
-                          onTap: () {
-                            if (item.status!) {
-                              Navigator.push(
-                                  context,
-                                  CupertinoPageRoute(
-                                      builder: (_) =>
-                                          ScadaElevatorScreen(board: item)));
-                            }
-                          },
-                          child: Container(
-                            width: 100,
-                            margin: const EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 9),
-                            padding: const EdgeInsets.all(5.0),
-                            decoration: BoxDecoration(
-                              color: item.status!
-                                  ? Colors.green
-                                  : Colors.black.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Center(
-                              child: Text(
-                                item.name.toString(),
-                                style: const TextStyle(
-                                  fontSize: 16.0,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList() ??
-                    [],
-              ),
+              _buildMetricBox(label: 'Nhiệt độ', value: '36.1°C'),
+              _buildMetricBox(label: 'Độ ẩm', value: '83%'),
+              _buildMetricBox(label: 'Gió', value: '3.09 km/h'),
             ],
           ),
-        ),
-        Positioned(
-          right: 0,
-          top: 0,
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedMarkerInfo = null;
-              });
-            },
-            child: Container(
-              padding: EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.close, color: Colors.white, size: 20),
-            ),
-          ),
-        ),
-      ],
+          const Divider(thickness: .4, color: Colors.black12),
+          Expanded(child: _buildMenuGrid()),
+        ],
+      ),
     );
   }
 
   Widget _buildDropdown(List<LocationDB> locations) {
     Size size = MediaQuery.of(context).size;
     return Container(
-      // width: size.width * .7,
       height: size.width * .16,
       margin: const EdgeInsets.symmetric(vertical: 5),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.7),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey),
+        border: Border.all(color: Colors.black26),
       ),
       child: DropdownButton<LocationDB>(
         isExpanded: true,
         value: _selectedMarkerInfo ?? locations.first,
-        dropdownColor: Colors.black.withOpacity(0.7),
-        underline: SizedBox(),
-        iconEnabledColor: Colors.white,
+        dropdownColor: Colors.white,
+        underline: const SizedBox(),
+        iconEnabledColor: Colors.black87,
         onChanged: (LocationDB? newValue) {
           if (newValue != null) {
             setState(() {
               _selectedMarkerInfo = newValue;
-              LatLng target = LatLng(newValue.lat!, newValue.lng!);
-              _controller.animateCamera(CameraUpdate.newLatLngZoom(target, 13));
             });
           }
         },
-        items: locations.map<DropdownMenuItem<LocationDB>>((location) {
+        items: locations.map((location) {
           return DropdownMenuItem<LocationDB>(
             value: location,
             child: Text(
-              location.name!,
-              style: const TextStyle(color: Colors.white),
+              location.name ?? '',
+              style: const TextStyle(color: Colors.black87),
             ),
           );
         }).toList(),
@@ -247,14 +112,123 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _moveCameraToFirstLocation(List<LocationDB> locations) {
-    if (locations.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        LatLng firstLocation = LatLng(locations[0].lat!, locations[0].lng!);
-        _controller
-            .animateCamera(CameraUpdate.newLatLngZoom(firstLocation, 13));
-        _onMarkerTapped(locations[0]);
-      });
-    }
+  Widget _buildMetricBox({required String label, required String value}) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: Colors.black12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.red,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.black54, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuGrid() {
+    final List<MenuItem> menuItems = [
+      MenuItem(
+        title: 'Vụ nuôi',
+        asset: 'assets/images/timetable.png',
+        onTap: () {
+          Navigator.push(context,
+              CupertinoPageRoute(builder: (context) => BatchListScreen()));
+        },
+      ),
+      MenuItem(
+        title: 'Công việc',
+        asset: 'assets/images/checklist.png',
+        onTap: () {},
+      ),
+      MenuItem(
+        title: 'Tồn kho',
+        asset: 'assets/images/inventory.png',
+        onTap: () {},
+      ),
+      MenuItem(
+        title: 'Cảnh báo',
+        asset: 'assets/images/alarm.png',
+        onTap: () {},
+      ),
+      MenuItem(
+        title: 'Thiết bị',
+        asset: 'assets/images/device.png',
+        onTap: () {},
+      ),
+      MenuItem(
+        title: 'Năng lượng',
+        asset: 'assets/images/energy.png',
+        onTap: () {},
+      ),
+      MenuItem(
+        title: 'Cài đặt',
+        asset: 'assets/images/setting.png',
+        onTap: () {},
+      ),
+    ];
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(8),
+      physics: const BouncingScrollPhysics(),
+      itemCount: menuItems.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.35,
+      ),
+      itemBuilder: (context, idx) {
+        final item = menuItems[idx];
+        return InkWell(
+          onTap: item.onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.black12),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Image.asset(item.asset, fit: BoxFit.contain),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  item.title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

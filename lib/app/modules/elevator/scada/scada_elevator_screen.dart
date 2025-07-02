@@ -110,7 +110,7 @@ class _ScadaElevatorScreenState extends State<ScadaElevatorScreen> {
   void dispose() {
     _stopStream();
     _localRenderer.dispose();
-    // mqttProvider?.unsubscribeTopic(topic);
+    mqttProvider?.unsubscribeTopic(topicSub);
     super.dispose();
   }
 

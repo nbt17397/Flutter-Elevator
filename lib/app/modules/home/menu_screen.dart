@@ -1,12 +1,13 @@
 import 'dart:async';
 
 import 'package:elevator/app/components/shimmer_loading.dart';
-import 'package:elevator/app/modules/elevator/alarm/alarm_elevator_screen.dart';
 import 'package:elevator/app/modules/home/home_screen.dart';
 import 'package:elevator/app/modules/setting/setting_screen.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
+
+import '../notification/notification_screen.dart';
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({Key? key}) : super(key: key);
@@ -32,7 +33,6 @@ class _MenuScreenState extends State<MenuScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
     return StreamBuilder(
         stream: _menuController.stream,
         builder: (context, AsyncSnapshot<int> snapshot) {
@@ -45,7 +45,7 @@ class _MenuScreenState extends State<MenuScreen> {
             body: snapshot.data == 0
                 ? HomeScreen()
                 : snapshot.data == 1
-                    ? AlarmElevatorScreen(registerID: 66)
+                    ? NotificationScreen()
                     : SettingScreen(),
             bottomNavigationBar: ClipRRect(
               child: FloatingNavbar(
@@ -55,7 +55,7 @@ class _MenuScreenState extends State<MenuScreen> {
                 currentIndex: snapshot.data ?? 0,
                 backgroundColor: CustomColors.appbarColor,
                 items: [
-                  FloatingNavbarItem(icon: Icons.home, title: 'Thang máy'),
+                  FloatingNavbarItem(icon: Icons.home, title: 'Trang chủ'),
                   FloatingNavbarItem(
                       icon: Icons.notifications_active_outlined,
                       title: 'Thông báo'),
