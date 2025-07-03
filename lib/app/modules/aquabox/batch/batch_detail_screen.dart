@@ -1,18 +1,26 @@
+import 'package:elevator/app/modules/aquabox/batch/density/density_sceen.dart';
+import 'package:elevator/app/modules/aquabox/batch/density/report_density_screen.dart';
+import 'package:elevator/app/modules/aquabox/batch/feed/feed_screen.dart';
+import 'package:elevator/app/modules/aquabox/batch/feed/report_feed_screen.dart';
+import 'package:elevator/app/modules/aquabox/batch/health/health_screen.dart';
+import 'package:elevator/app/modules/aquabox/batch/health/report_health_screen.dart';
+import 'package:elevator/app/modules/aquabox/batch/water_quality/water_quality_screen.dart';
+import 'package:elevator/app/modules/aquabox/batch/water_quality/report_water_quality_screen.dart';
+import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:elevator/config/shared/colors.dart';
 
 /* ------------ Giả lập model ------------ */
 class Pond {
   final String code;
-  final int stocking;
   final String name;
-  Pond(this.code, this.name, this.stocking);
+  final int released;   // số lượng thả ban đầu
+  final int remain;     // số lượng còn lại
+  Pond(this.code, this.name, this.released, this.remain);
 }
 
 class BatchDetailScreen extends StatefulWidget {
   const BatchDetailScreen({super.key});
-
   @override
   State<BatchDetailScreen> createState() => _BatchDetailScreenState();
 }
@@ -36,10 +44,16 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
       'total': 3500,
       'status': 'Đang nuôi',
     };
-    _ponds = List.generate(
-        4, (i) => Pond('P${i + 1}', 'Bể nuôi ${i + 1}', 800 + i * 50));
+
+    // giả lập 4 bể: thả 800‑950 con, còn lại ±5%
+    _ponds = List.generate(4, (i) {
+      final released = 800 + i * 50;
+      final remain = (released * .95).round(); // còn lại 95% (ví dụ)
+      return Pond('P${i + 1}', 'Bể nuôi ${i + 1}', released, remain);
+    });
   }
 
+  /* ---------------- UI ---------------- */
   @override
   Widget build(BuildContext context) {
     final b = _batch;
@@ -53,25 +67,12 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
           PopupMenuButton(
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            itemBuilder: (BuildContext bc) => [
-              PopupMenuItem(
-                  value: "edit",
-                  child: Text('Chỉnh sửa', style: TextStyle(fontSize: 14))),
-              PopupMenuItem(
-                  value: "delete",
-                  child: Text('Xóa', style: TextStyle(fontSize: 14))),
+            itemBuilder: (bc) => const [
+              PopupMenuItem(value: "edit", child: Text('Chỉnh sửa')),
+              PopupMenuItem(value: "delete", child: Text('Xóa')),
             ],
-            onSelected: (route) {
-              switch (route) {
-                case 'edit':
-                  {
-                    break;
-                  }
-                default:
-                  {
-                    break;
-                  }
-              }
+            onSelected: (v) {
+              // TODO: xử lý edit / delete
             },
           ),
         ],
@@ -81,6 +82,7 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ------- THÔNG TIN LÔ NUÔI -------
             Stack(
               children: [
                 Positioned(
@@ -94,36 +96,37 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      children: [
-                        _info('Tên', b['name']),
-                        const SizedBox(height: 4),
-                        _info('Loại', b['type']),
-                        _info('Quản lý', b['manager']),
-                        const SizedBox(height: 4),
-                        _info('Thời gian',
-                            '${_fmt.format(b['start'])} → ${_fmt.format(b['end'])}'),
-                        _info('Số lượng thả', b['total'].toString()),
-                      ],
-                    ),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey),
+                  ),
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _info('Tên', b['name']),
+                      const SizedBox(height: 4),
+                      _info('Loại', b['type']),
+                      _info('Quản lý', b['manager']),
+                      const SizedBox(height: 4),
+                      _info('Thời gian',
+                          '${_fmt.format(b['start'])} → ${_fmt.format(b['end'])}'),
+                      _info('Số lượng thả', b['total'].toString()),
+                    ],
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
+
+            // ------- DANH SÁCH BỂ -------
             Row(
               children: [
-                const Text(
-                  'Danh sách bể nuôi',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
+                const Text('Danh sách bể nuôi',
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                 const Spacer(),
                 TextButton.icon(
-                  onPressed: () {},
+                  onPressed: () {}, // TODO: thêm bể
                   style: TextButton.styleFrom(
                     backgroundColor: CustomColors.appbarColor,
                     foregroundColor: Colors.white,
@@ -133,37 +136,41 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
                         borderRadius: BorderRadius.circular(6)),
                   ),
                   icon: const Icon(Icons.add, size: 18),
-                  label: const SizedBox.shrink()
+                  label: const SizedBox.shrink(),
                 ),
               ],
             ),
             const SizedBox(height: 6),
+
             Center(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: DataTable(
-                  headingRowColor: MaterialStateProperty.resolveWith(
-                      (_) => Colors.black), // header đen
-                  dataRowColor: MaterialStateProperty.resolveWith(
-                      (_) => Colors.grey.shade300), // body xám
+                  headingRowColor:
+                      MaterialStateProperty.all(Colors.black),          // header
+                  dataRowColor: MaterialStateProperty.all(
+                      Colors.grey.shade300),                            // body
                   columnSpacing: 32,
                   columns: const [
                     DataColumn(
-                        label: Text('Mã bể nuôi',
+                        label: Text('Mã bể', style: TextStyle(color: Colors.white))),
+                    DataColumn(
+                        label: Text('Tên bể', style: TextStyle(color: Colors.white))),
+                    DataColumn(
+                        numeric: true,
+                        label: Text('Số lượng thả',
                             style: TextStyle(color: Colors.white))),
                     DataColumn(
-                        label: Text('Tên bể nuôi',
-                            style: TextStyle(color: Colors.white))),
-                    DataColumn(
-                        label: Text('Số lượng thực tế',
+                        numeric: true,
+                        label: Text('Thực tế',
                             style: TextStyle(color: Colors.white))),
                   ],
                   rows: _ponds
                       .map((p) => DataRow(cells: [
                             DataCell(Text(p.code)),
                             DataCell(Text(p.name)),
-                            DataCell(
-                                Center(child: Text(p.stocking.toString()))),
+                            DataCell(Center(child: Text(p.released.toString()))),
+                            DataCell(Center(child: Text(p.remain.toString()))),
                           ]))
                       .toList(),
                   showCheckboxColumn: false,
@@ -172,9 +179,9 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
             ),
             const SizedBox(height: 20),
 
-            /* ==== MENU 1 × 4 ==== */
+            // ------- MENU CHỨC NĂNG -------
             GridView.count(
-              crossAxisCount: 2, // 👉 1 hàng 4 ô
+              crossAxisCount: 2,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               mainAxisSpacing: 8,
@@ -193,8 +200,7 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
     );
   }
 
-  /* ---- Helpers ---- */
-
+  /* ---------------- Widgets Helper ---------------- */
   Widget _info(String k, String v) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 1),
         child: Row(
@@ -208,7 +214,25 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
       );
 
   Widget _menu(IconData ico, String title) => InkWell(
-        onTap: () {},
+        onTap: () {
+          switch (title) {
+            case "Mật độ nuôi":
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => ReportDensityScreen()));
+              break;
+            case "Thức ăn":
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => FeedReportScreen()));
+              break;
+            case "Chất lượng nước":
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => WaterQualityReportScreen()));
+              break;
+            default:
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => HealthReportScreen()));
+          }
+        },
         borderRadius: BorderRadius.circular(8),
         child: Container(
           decoration: BoxDecoration(
@@ -216,15 +240,59 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.blue.shade100),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
             children: [
-              Icon(ico, size: 32, color: Colors.blue.shade700),
-              const SizedBox(height: 6),
-              Text(title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.bold)),
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(ico, size: 32, color: Colors.blue.shade700),
+                    const SizedBox(height: 6),
+                    Text(title,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 2,
+                right: 2,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    switch (title) {
+                      case "Mật độ nuôi":
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => DensityScreen()));
+                        break;
+                      case "Thức ăn":
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => FeedScreen()));
+                        break;
+                      case "Chất lượng nước":
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => WaterQualityScreen()));
+                        break;
+                      default:
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => HealthScreen()));
+                    }
+                  },
+                  child: Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: CustomColors.appbarColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child:
+                        const Icon(Icons.add, size: 16, color: Colors.white),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

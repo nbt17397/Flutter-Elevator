@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:elevator/app/components/shimmer_loading.dart';
 import 'package:elevator/app/modules/home/home_screen.dart';
-import 'package:elevator/app/modules/setting/setting_screen.dart';
+import 'package:elevator/app/modules/profile/profile_screen.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
@@ -46,7 +46,7 @@ class _MenuScreenState extends State<MenuScreen> {
                 ? HomeScreen()
                 : snapshot.data == 1
                     ? NotificationScreen()
-                    : SettingScreen(),
+                    : ProfileScreen(),
             bottomNavigationBar: ClipRRect(
               child: FloatingNavbar(
                 padding: EdgeInsets.symmetric(horizontal: 0, vertical: 3),

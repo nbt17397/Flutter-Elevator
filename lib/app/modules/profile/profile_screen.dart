@@ -7,14 +7,14 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../auth/bloc/login_bloc.dart';
 
-class SettingScreen extends StatefulWidget {
-  const SettingScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
 
   @override
-  State<SettingScreen> createState() => _SettingScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _SettingScreenState extends State<SettingScreen> {
+class _ProfileScreenState extends State<ProfileScreen> {
   late final LoginBloc _loginBloc;
 
   @override

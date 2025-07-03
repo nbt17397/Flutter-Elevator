@@ -1,10 +1,16 @@
 import 'package:elevator/app/data/response/location_response.dart';
+import 'package:elevator/app/modules/aquabox/alert/alert_screen.dart';
 import 'package:elevator/app/modules/aquabox/batch/batch_list_screen.dart';
+import 'package:elevator/app/modules/aquabox/energy/energy_report_screen.dart';
+import 'package:elevator/app/modules/aquabox/setting/menu_setting_screen.dart';
+import 'package:elevator/app/modules/aquabox/warehouse/warehouse_menu_screen.dart';
 import 'package:elevator/app/modules/home/bloc/location_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/menu_item.dart';
+import '../aquabox/scada/menu_scada_screen.dart';
+import '../aquabox/work/work_calendar_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -128,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               value,
               style: const TextStyle(
-                color: Colors.red,
+                // color: Colors.red,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -157,32 +163,44 @@ class _HomeScreenState extends State<HomeScreen> {
       MenuItem(
         title: 'Công việc',
         asset: 'assets/images/checklist.png',
-        onTap: () {},
+        onTap: () {
+          Navigator.push(context,
+              CupertinoPageRoute(builder: (context) => WorkCalendarScreen()));
+        },
       ),
       MenuItem(
         title: 'Tồn kho',
         asset: 'assets/images/inventory.png',
-        onTap: () {},
+        onTap: () {
+          Navigator.push(context,
+              CupertinoPageRoute(builder: (context) => WarehouseMenuScreen()));
+        },
       ),
       MenuItem(
         title: 'Cảnh báo',
         asset: 'assets/images/alarm.png',
-        onTap: () {},
+        onTap: () {
+          Navigator.push(context,
+              CupertinoPageRoute(builder: (context) => AlertScreen()));
+        },
       ),
       MenuItem(
         title: 'Thiết bị',
         asset: 'assets/images/device.png',
-        onTap: () {},
+         onTap: () {  Navigator.push(context,
+              CupertinoPageRoute(builder: (context) => ScadaMenuScreen()));},
       ),
       MenuItem(
         title: 'Năng lượng',
         asset: 'assets/images/energy.png',
-        onTap: () {},
+        onTap: () {  Navigator.push(context,
+              CupertinoPageRoute(builder: (context) => EnergyReportScreen()));},
       ),
       MenuItem(
         title: 'Cài đặt',
         asset: 'assets/images/setting.png',
-        onTap: () {},
+         onTap: () {  Navigator.push(context,
+              CupertinoPageRoute(builder: (context) => FarmSettingsMenuScreen()));},
       ),
     ];
 

@@ -84,6 +84,7 @@ class _MyAuthenticationState extends State<MyAuthentication> {
           // initialRoute: AppPages.AUTH, // first screen to show when app is running
           getPages: AppPages.routes, // app screens
           locale: MySharedPref.getCurrentLocal(), // app language
+          
           translations: LocalizationService
               .getInstance(), // localization services in app (controller app language)
           home: BlocListener(
