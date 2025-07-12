@@ -1,6 +1,6 @@
+import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class EnergySettingsScreen extends StatefulWidget {
   const EnergySettingsScreen({super.key});
@@ -45,70 +45,82 @@ class _EnergySettingsScreenState extends State<EnergySettingsScreen> {
   /* --------- UI --------- */
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cài đặt năng lượng'),
-        centerTitle: true,
-        backgroundColor: CustomColors.appbarColor,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              _warningCard(
-                title: 'Cảnh báo áp thấp',
-                enabled: _lowVoltEnabled,
-                onToggle: (v) => setState(() => _lowVoltEnabled = v),
-                child: _lowVoltEnabled
-                    ? _thresholdField(
-                        controller: _lowVoltCtrl,
-                        label: 'Ngưỡng tối thiểu (V)',
-                        min: 100,
-                        max: 230,
-                      )
-                    : null,
-              ),
-              _warningCard(
-                title: 'Cảnh báo áp cao',
-                enabled: _highVoltEnabled,
-                onToggle: (v) => setState(() => _highVoltEnabled = v),
-                child: _highVoltEnabled
-                    ? _thresholdField(
-                        controller: _highVoltCtrl,
-                        label: 'Ngưỡng tối đa (V)',
-                        min: 220,
-                        max: 300,
-                      )
-                    : null,
-              ),
-              _warningCard(
-                title: 'Cảnh báo mất pha',
-                enabled: _phaseLossEnabled,
-                onToggle: (v) => setState(() => _phaseLossEnabled = v),
-              ),
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Cài đặt năng lượng'),
+          centerTitle: true,
+          backgroundColor: CustomColors.appbarColor,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                _warningCard(
+                  title: 'Cảnh báo áp thấp',
+                  enabled: _lowVoltEnabled,
+                  onToggle: (v) => setState(() => _lowVoltEnabled = v),
+                  child: _lowVoltEnabled
+                      ? _thresholdField(
+                          controller: _lowVoltCtrl,
+                          label: 'Ngưỡng tối thiểu (V)',
+                          min: 100,
+                          max: 230,
+                        )
+                      : null,
+                ),
+                _warningCard(
+                  title: 'Cảnh báo áp cao',
+                  enabled: _highVoltEnabled,
+                  onToggle: (v) => setState(() => _highVoltEnabled = v),
+                  child: _highVoltEnabled
+                      ? _thresholdField(
+                          controller: _highVoltCtrl,
+                          label: 'Ngưỡng tối đa (V)',
+                          min: 220,
+                          max: 300,
+                        )
+                      : null,
+                ),
+                _warningCard(
+                  title: 'Cảnh báo mất pha',
+                  enabled: _phaseLossEnabled,
+                  onToggle: (v) => setState(() => _phaseLossEnabled = v),
+                ),
 
-              const SizedBox(height: 80), // Chừa khoảng trống cho bottomSheet
-            ],
+                const SizedBox(height: 80), // Chừa khoảng trống cho bottomSheet
+              ],
+            ),
           ),
         ),
-      ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-        ),
-        child: ElevatedButton.icon(
-          onPressed: _save,
-          label: const Text(
-            'Lưu',
-            style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
+        bottomSheet: Container(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFFF5FAFF), // xanh rất nhạt (gần trắng)
+                Color(0xFFE8F1FC), // xanh nhạt hơn
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
           ),
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 48),
-            backgroundColor: CustomColors.appbarColor,
+          child: ElevatedButton.icon(
+            onPressed: _save,
+            label: const Text(
+              'Lưu',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.white),
+            ),
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 48),
+              backgroundColor: CustomColors.appbarColor,
+            ),
           ),
         ),
       ),
@@ -137,7 +149,7 @@ class _EnergySettingsScreenState extends State<EnergySettingsScreen> {
                 child: Text(
                   title,
                   style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 16),
+                      fontWeight: FontWeight.bold, fontSize: 14),
                 ),
               ),
               Switch(

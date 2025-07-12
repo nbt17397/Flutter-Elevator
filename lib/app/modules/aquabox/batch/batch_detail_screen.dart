@@ -1,3 +1,4 @@
+import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/app/modules/aquabox/batch/density/density_sceen.dart';
 import 'package:elevator/app/modules/aquabox/batch/density/report_density_screen.dart';
 import 'package:elevator/app/modules/aquabox/batch/feed/feed_screen.dart';
@@ -14,8 +15,8 @@ import 'package:intl/intl.dart';
 class Pond {
   final String code;
   final String name;
-  final int released;   // số lượng thả ban đầu
-  final int remain;     // số lượng còn lại
+  final int released; // số lượng thả ban đầu
+  final int remain; // số lượng còn lại
   Pond(this.code, this.name, this.released, this.remain);
 }
 
@@ -58,108 +59,111 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
   Widget build(BuildContext context) {
     final b = _batch;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Chi tiết ${b['code']}'),
-        centerTitle: true,
-        backgroundColor: CustomColors.appbarColor,
-        actions: [
-          PopupMenuButton(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            itemBuilder: (bc) => const [
-              PopupMenuItem(value: "edit", child: Text('Chỉnh sửa')),
-              PopupMenuItem(value: "delete", child: Text('Xóa')),
-            ],
-            onSelected: (v) {
-              // TODO: xử lý edit / delete
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ------- THÔNG TIN LÔ NUÔI -------
-            Stack(
-              children: [
-                Positioned(
-                  right: 4,
-                  top: 0,
-                  child: Chip(
-                    label: Text(b['status'],
-                        style: const TextStyle(color: Colors.black)),
-                    backgroundColor: Colors.orange.shade200,
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey),
-                  ),
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _info('Tên', b['name']),
-                      const SizedBox(height: 4),
-                      _info('Loại', b['type']),
-                      _info('Quản lý', b['manager']),
-                      const SizedBox(height: 4),
-                      _info('Thời gian',
-                          '${_fmt.format(b['start'])} → ${_fmt.format(b['end'])}'),
-                      _info('Số lượng thả', b['total'].toString()),
-                    ],
-                  ),
-                ),
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: Text(b['code']),
+          centerTitle: true,
+          backgroundColor: CustomColors.appbarColor,
+          actions: [
+            PopupMenuButton(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+              itemBuilder: (bc) => const [
+                PopupMenuItem(value: "edit", child: Text('Chỉnh sửa')),
+                PopupMenuItem(value: "delete", child: Text('Xóa')),
               ],
+              onSelected: (v) {
+                // TODO: xử lý edit / delete
+              },
             ),
-            const SizedBox(height: 16),
-
-            // ------- DANH SÁCH BỂ -------
-            Row(
-              children: [
-                const Text('Danh sách bể nuôi',
-                    style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: () {}, // TODO: thêm bể
-                  style: TextButton.styleFrom(
-                    backgroundColor: CustomColors.appbarColor,
-                    foregroundColor: Colors.white,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6)),
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ------- THÔNG TIN LÔ NUÔI -------
+              Stack(
+                children: [
+                  
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _info('Tên', b['name']),
+                        const SizedBox(height: 4),
+                        _info('Loại', b['type']),
+                        _info('Quản lý', b['manager']),
+                        const SizedBox(height: 4),
+                        _info('Thời gian',
+                            '${_fmt.format(b['start'])} → ${_fmt.format(b['end'])}'),
+                        _info('Số lượng thả', b['total'].toString()),
+                      ],
+                    ),
+                  ),Positioned(
+                    right: 4,
+                    top: 0,
+                    child: Chip(
+                      label: Text(b['status'],
+                          style: const TextStyle(color: Colors.black)),
+                      backgroundColor: Colors.orange.shade200,
+                    ),
                   ),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const SizedBox.shrink(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
+                ],
+              ),
+              const SizedBox(height: 16),
 
-            Center(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
+              // ------- DANH SÁCH BỂ -------
+              Row(
+                children: [
+                  const Text('Danh sách bể nuôi',
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: () {}, // TODO: thêm bể
+                    style: TextButton.styleFrom(
+                      backgroundColor: CustomColors.appbarColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6)),
+                    ),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 24,
                 child: DataTable(
                   headingRowColor:
-                      MaterialStateProperty.all(Colors.black),          // header
-                  dataRowColor: MaterialStateProperty.all(
-                      Colors.grey.shade300),                            // body
+                      WidgetStateProperty.all(Colors.black), // header
+                  dataRowColor:
+                      WidgetStateProperty.all(Colors.white), // body
                   columnSpacing: 32,
                   columns: const [
                     DataColumn(
-                        label: Text('Mã bể', style: TextStyle(color: Colors.white))),
+                        label: Text('Mã bể',
+                            style: TextStyle(color: Colors.white))),
                     DataColumn(
-                        label: Text('Tên bể', style: TextStyle(color: Colors.white))),
+                        label: Text('Tên bể',
+                            style: TextStyle(color: Colors.white))),
                     DataColumn(
                         numeric: true,
-                        label: Text('Số lượng thả',
-                            style: TextStyle(color: Colors.white))),
+                        label:
+                            Text('SL', style: TextStyle(color: Colors.white))),
                     DataColumn(
                         numeric: true,
                         label: Text('Thực tế',
@@ -169,32 +173,32 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
                       .map((p) => DataRow(cells: [
                             DataCell(Text(p.code)),
                             DataCell(Text(p.name)),
-                            DataCell(Center(child: Text(p.released.toString()))),
-                            DataCell(Center(child: Text(p.remain.toString()))),
+                            DataCell(Text(p.released.toString())),
+                            DataCell(Text(p.remain.toString())),
                           ]))
                       .toList(),
                   showCheckboxColumn: false,
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // ------- MENU CHỨC NĂNG -------
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: 1.7,
-              children: [
-                _menu(Icons.bar_chart, 'Mật độ nuôi'),
-                _menu(Icons.restaurant, 'Thức ăn'),
-                _menu(Icons.water_drop, 'Chất lượng nước'),
-                _menu(Icons.health_and_safety, 'Sức khoẻ'),
-              ],
-            ),
-          ],
+              // ------- MENU CHỨC NĂNG -------
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: 1.7,
+                children: [
+                  _menu(Icons.bar_chart, 'Mật độ nuôi'),
+                  _menu(Icons.restaurant, 'Thức ăn'),
+                  _menu(Icons.water_drop, 'Chất lượng nước'),
+                  _menu(Icons.health_and_safety, 'Sức khoẻ'),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -225,8 +229,10 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
                   MaterialPageRoute(builder: (_) => FeedReportScreen()));
               break;
             case "Chất lượng nước":
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => WaterQualityReportScreen()));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => WaterQualityReportScreen()));
               break;
             default:
               Navigator.push(context,
@@ -236,9 +242,8 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
         borderRadius: BorderRadius.circular(8),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.blue.shade50,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue.shade100),
           ),
           child: Stack(
             children: [
@@ -288,8 +293,7 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
                       color: CustomColors.appbarColor,
                       shape: BoxShape.circle,
                     ),
-                    child:
-                        const Icon(Icons.add, size: 16, color: Colors.white),
+                    child: const Icon(Icons.add, size: 16, color: Colors.white),
                   ),
                 ),
               ),

@@ -1,4 +1,7 @@
+import 'package:elevator/app/components/app_background.dart';
+import 'package:elevator/app/modules/aquabox/setting/area/area_screen.dart';
 import 'package:elevator/app/modules/aquabox/setting/formula/formula_screen.dart';
+import 'package:elevator/app/modules/aquabox/setting/manager/employee_screen.dart';
 import 'package:elevator/app/modules/aquabox/setting/unit/unit_screen.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,8 +14,7 @@ import 'feeding_schedule/feeding_schedule_screen.dart';
 class _MenuItem {
   final String title;
   final IconData icon;
-  final VoidCallback onTap; // callback mở màn hình chi tiết
-
+  final VoidCallback onTap;
   const _MenuItem(this.title, this.icon, this.onTap);
 }
 
@@ -20,90 +22,107 @@ class _MenuItem {
 class FarmSettingsMenuScreen extends StatelessWidget {
   const FarmSettingsMenuScreen({super.key});
 
-  /* --------- UI --------- */
   @override
   Widget build(BuildContext context) {
-    // Danh sách menu – gọi Navigator.push(...) trong onTap theo dự án của bạn
-    final items = [
+    /* ===== Nhóm 1: Thức ăn ===== */
+    final feedGroup = [
       _MenuItem(
         'Menu thức ăn',
         Icons.restaurant_menu,
-        () {
-          Navigator.push(
-              context, CupertinoPageRoute(builder: (context) => FeedFormulaScreen()));
-        },
+        () => Navigator.push(
+            context, CupertinoPageRoute(builder: (_) => FeedFormulaScreen())),
       ),
       _MenuItem(
         'Lịch cho ăn',
         Icons.schedule,
-        () {
-          Navigator.push(
-              context, CupertinoPageRoute(builder: (context) => FeedingScheduleScreen()));
-        },
+        () => Navigator.push(
+            context, CupertinoPageRoute(builder: (_) => FeedingScheduleScreen())),
+      ),
+    ];
+
+    /* ===== Nhóm 2: Hệ thống ===== */
+    final systemGroup = [
+       _MenuItem(
+        'Khu vực',
+        Icons.area_chart_sharp,
+        () => Navigator.push(
+            context, CupertinoPageRoute(builder: (_) => AreaScreen())),
+      ),
+      _MenuItem(
+        'Quản lý',
+        Icons.person_3_outlined,
+        () => Navigator.push(
+            context, CupertinoPageRoute(builder: (_) => EmployeeScreen())),
       ),
       _MenuItem(
         'Đơn vị',
         Icons.straighten,
-        () {
-          Navigator.push(
-              context, CupertinoPageRoute(builder: (context) => UnitScreen()));
-        },
+        () => Navigator.push(
+            context, CupertinoPageRoute(builder: (_) => UnitScreen())),
       ),
       _MenuItem(
         'Kích hoạt cảnh báo',
         Icons.notifications_active,
-        () {
-          Navigator.push(
-              context, CupertinoPageRoute(builder: (context) => AlertSettingScreen()));
-        },
+        () => Navigator.push(
+            context, CupertinoPageRoute(builder: (_) => AlertSettingScreen())),
       ),
     ];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cài đặt'),
-        centerTitle: true,
-        backgroundColor: CustomColors.appbarColor,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: ListView.separated(
-          itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (ctx, i) {
-            final item = items[i];
-            return InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: item.onTap,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: _box,
-                child: Row(
-                  children: [
-                    Icon(item.icon,
-                        size: 28, color: Theme.of(context).primaryColor),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        item.title,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right),
-                  ],
-                ),
-              ),
-            );
-          },
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Cài đặt'),
+          centerTitle: true,
+          backgroundColor: CustomColors.appbarColor,
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(12),
+          children: [
+            _sectionTitle('Thức ăn'),
+            ...feedGroup.map((e) => _menuTile(context, e)),
+            const SizedBox(height: 20),
+            _sectionTitle('Hệ thống'),
+            ...systemGroup.map((e) => _menuTile(context, e)),
+          ],
         ),
       ),
     );
   }
 
-  /* --------- BORDER STYLE --------- */
-  BoxDecoration get _box => BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400),
-        borderRadius: BorderRadius.circular(8),
+  /* ---- Widget tiêu đề nhóm ---- */
+  Widget _sectionTitle(String t) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(t,
+            style: const TextStyle(
+                fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+      );
+
+  /* ---- Widget 1 ô menu ---- */
+  Widget _menuTile(BuildContext ctx, _MenuItem item) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: item.onTap,
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 16,horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(item.icon, size: 22, color: Theme.of(ctx).primaryColor),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(item.title,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500)),
+                ),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
+          ),
+        ),
       );
 }

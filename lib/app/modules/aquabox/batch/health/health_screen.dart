@@ -1,3 +1,4 @@
+import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
 
@@ -31,15 +32,15 @@ class _HealthScreenState extends State<HealthScreen> {
         labelStyle: const TextStyle(fontSize: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.black),
+          borderSide: const BorderSide(color: Colors.black26),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.black),
+          borderSide: const BorderSide(color: Colors.black26),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.black, width: 1),
+          borderSide: const BorderSide(color: Colors.black26, width: 1),
         ),
       );
 
@@ -68,7 +69,7 @@ class _HealthScreenState extends State<HealthScreen> {
           Container(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.black),
+              border: Border.all(color: Colors.black26),
               borderRadius: BorderRadius.circular(8),
             ),
             child: SliderTheme(
@@ -95,92 +96,95 @@ class _HealthScreenState extends State<HealthScreen> {
   /* ----- UI ----- */
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cập nhật sức khỏe'),
-        centerTitle: true,
-        backgroundColor: CustomColors.appbarColor,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /* --- AUTO SWITCH --- */
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text('Cập nhật tự động',
-                        style: TextStyle(fontWeight: FontWeight.w600)),
-                  ),
-                  Switch(
-                    value: _auto,
-                    onChanged: (v) => setState(() => _auto = v),
-                    activeColor: Colors.green,
-                    activeTrackColor: Colors.green.shade200,
-                    inactiveThumbColor: Colors.white,
-                    inactiveTrackColor: Colors.grey.shade400,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              /* --- Chiều dài --- */
-              TextFormField(
-                controller: _lengthCtl,
-                decoration: _dec('Chiều dài (cm)'),
-                keyboardType: TextInputType.number,
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Nhập chiều dài' : null,
-              ),
-              const SizedBox(height: 16),
-
-              /* --- Chiều rộng --- */
-              TextFormField(
-                controller: _widthCtl,
-                decoration: _dec('Chiều rộng (cm)'),
-                keyboardType: TextInputType.number,
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Nhập chiều rộng' : null,
-              ),
-              const SizedBox(height: 24),
-
-              /* --- Rating tình trạng sức khỏe --- */
-              _ratingBox(
-                title: 'Tình trạng sức khỏe',
-                rating: _healthRating,
-                onChanged: (v) => setState(() => _healthRating = v.round()),
-              ),
-              const SizedBox(height: 24),
-
-              /* --- Rating tình trạng phân --- */
-              _ratingBox(
-                title: 'Tình trạng phân',
-                rating: _fecesRating,
-                onChanged: (v) => setState(() => _fecesRating = v.round()),
-              ),
-            ],
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Cập nhật sức khỏe'),
+          centerTitle: true,
+          backgroundColor: CustomColors.appbarColor,
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(12),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /* --- AUTO SWITCH --- */
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text('Cập nhật tự động',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                    Switch(
+                      value: _auto,
+                      onChanged: (v) => setState(() => _auto = v),
+                      activeColor: Colors.green,
+                      activeTrackColor: Colors.green.shade200,
+                      inactiveThumbColor: Colors.white,
+                      inactiveTrackColor: Colors.grey.shade400,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+      
+                /* --- Chiều dài --- */
+                TextFormField(
+                  controller: _lengthCtl,
+                  decoration: _dec('Chiều dài (cm)'),
+                  keyboardType: TextInputType.number,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Nhập chiều dài' : null,
+                ),
+                const SizedBox(height: 16),
+      
+                /* --- Chiều rộng --- */
+                TextFormField(
+                  controller: _widthCtl,
+                  decoration: _dec('Chiều rộng (cm)'),
+                  keyboardType: TextInputType.number,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Nhập chiều rộng' : null,
+                ),
+                const SizedBox(height: 24),
+      
+                /* --- Rating tình trạng sức khỏe --- */
+                _ratingBox(
+                  title: 'Tình trạng sức khỏe',
+                  rating: _healthRating,
+                  onChanged: (v) => setState(() => _healthRating = v.round()),
+                ),
+                const SizedBox(height: 24),
+      
+                /* --- Rating tình trạng phân --- */
+                _ratingBox(
+                  title: 'Tình trạng phân',
+                  rating: _fecesRating,
+                  onChanged: (v) => setState(() => _fecesRating = v.round()),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-
-      /* --- NÚT CẬP NHẬT (thủ công) --- */
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ElevatedButton(
-          onPressed: _auto ? null : _submit, // disable khi tự động
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-            backgroundColor: CustomColors.appbarColor,
-            disabledBackgroundColor: Colors.grey,
+      
+        /* --- NÚT CẬP NHẬT (thủ công) --- */
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ElevatedButton(
+            onPressed: _auto ? null : _submit, // disable khi tự động
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+              backgroundColor: CustomColors.appbarColor,
+              disabledBackgroundColor: Colors.grey,
+            ),
+            child: const Text('Cập nhật thủ công',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14)),
           ),
-          child: const Text('Cập nhật thủ công',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14)),
         ),
       ),
     );

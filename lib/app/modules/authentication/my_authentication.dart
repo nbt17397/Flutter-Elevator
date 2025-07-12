@@ -15,6 +15,7 @@ import '../home/home_screen.dart';
 import 'bloc/authentication_bloc.dart';
 import 'package:get/get.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 class MyAuthentication extends StatefulWidget {
   const MyAuthentication({super.key});
@@ -46,6 +47,7 @@ class _MyAuthenticationState extends State<MyAuthentication> {
 
     _authenticationBloc = AuthenticationBloc();
     _authenticationBloc.add(AppStarted());
+    FlutterNativeSplash.remove();
   }
 
   @override
@@ -65,8 +67,7 @@ class _MyAuthenticationState extends State<MyAuthentication> {
       rebuildFactor: (old, data) => true,
       builder: (context, widget) {
         return GetMaterialApp(
-          // todo add your app name
-          title: "HP-Elevator",
+          title: "SmartFarm",
           useInheritedMediaQuery: true,
           debugShowCheckedModeBanner: false,
           builder: (context, widget) {
@@ -74,9 +75,7 @@ class _MyAuthenticationState extends State<MyAuthentication> {
             return Theme(
               data: MyTheme.getThemeData(isLight: themeIsLight),
               child: MediaQuery(
-                // prevent font from scalling (some people use big/small device fonts)
-                // but we want our app font to still the same and dont get affected
-                data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+                data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
                 child: widget!,
               ),
             );

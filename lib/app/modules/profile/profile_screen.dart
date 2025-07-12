@@ -1,3 +1,4 @@
+import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/app/data/models/user_model.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/cupertino.dart';
@@ -31,90 +32,92 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.only(top: 30, left: 12, right: 12),
-        child: ValueListenableBuilder(
-          valueListenable: Hive.box<UserModel>('userModel').listenable(),
-          builder: (context, Box<UserModel> box, _) {
-            final user = box.isNotEmpty ? box.getAt(0) : null;
-
-            return Column(
-              children: [
-                // ---------- THẺ HỒ SƠ ----------
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.black12),
-                  ),
-                  child: Row(
-                    children: [
-                      const CircleAvatar(
-                        radius: 40,
-                        backgroundImage:
-                            AssetImage('assets/images/person1.png'),
-                      ),
-                      const SizedBox(width: 16),
-                      // --------- Tên & hạng ---------
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user?.name.toUpperCase() ?? 'NGƯỜI DÙNG',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Padding(
+          padding: const EdgeInsets.only(top: 30, left: 12, right: 12),
+          child: ValueListenableBuilder(
+            valueListenable: Hive.box<UserModel>('userModel').listenable(),
+            builder: (context, Box<UserModel> box, _) {
+              final user = box.isNotEmpty ? box.getAt(0) : null;
+      
+              return Column(
+                children: [
+                  // ---------- THẺ HỒ SƠ ----------
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 40,
+                          backgroundImage:
+                              AssetImage('assets/images/person1.png'),
+                        ),
+                        const SizedBox(width: 16),
+                        // --------- Tên & hạng ---------
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user?.name.toUpperCase() ?? 'NGƯỜI DÙNG',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text('Khách hàng VIP',
+                                style: TextStyle(color: Colors.blue.shade600)),
+                          ],
+                        ),
+                        const Spacer(), // đẩy nút sang bên phải
+                        // --------- NÚT ĐĂNG XUẤT ---------
+                        ElevatedButton.icon(
+                          onPressed: () => _loginBloc.add(Logout()),
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            backgroundColor: Colors.redAccent,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text('Khách hàng VIP',
-                              style: TextStyle(color: Colors.blue.shade600)),
-                        ],
-                      ),
-                      const Spacer(), // đẩy nút sang bên phải
-                      // --------- NÚT ĐĂNG XUẤT ---------
-                      ElevatedButton.icon(
-                        onPressed: () => _loginBloc.add(Logout()),
-                        style: ElevatedButton.styleFrom(
-                          elevation: 0,
-                          backgroundColor: Colors.redAccent,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
-                          ),
+                          icon: const Icon(Icons.logout,
+                              size: 18, color: Colors.white),
+                          label: const Text('',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 14)),
                         ),
-                        icon: const Icon(Icons.logout,
-                            size: 18, color: Colors.white),
-                        label: const Text('',
-                            style:
-                                TextStyle(color: Colors.white, fontSize: 14)),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // ---------- THÔNG BÁO ----------
-                _buildSwitchItem(
-                  icon: Icons.notifications_active,
-                  title: 'Thông báo',
-                  value: true,
-                  onChanged: (v) {},
-                ),
-
-                // ---------- NGÔN NGỮ ----------
-                _buildLanguageItem(),
-
-                // ---------- PHIÊN BẢN ----------
-                _buildProfileItem(Icons.info, 'Phiên bản', '1.0.0'),
-              ],
-            );
-          },
+      
+                  const SizedBox(height: 20),
+      
+                  // ---------- THÔNG BÁO ----------
+                  _buildSwitchItem(
+                    icon: Icons.notifications_active,
+                    title: 'Thông báo',
+                    value: true,
+                    onChanged: (v) {},
+                  ),
+      
+                  // ---------- NGÔN NGỮ ----------
+                  _buildLanguageItem(),
+      
+                  // ---------- PHIÊN BẢN ----------
+                  _buildProfileItem(Icons.info, 'Phiên bản', '1.0.0'),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -132,9 +135,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.black12),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -158,9 +160,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.black12),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -197,9 +198,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.black12),
       ),
       child: Row(
         children: [

@@ -1,3 +1,4 @@
+import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
 
@@ -16,40 +17,43 @@ class _AlertSettingScreenState extends State<AlertSettingScreen> {
 
   BoxDecoration get _box => BoxDecoration(
         border: Border.all(color: Colors.grey.shade400),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8),color: Colors.white
       );
 
   /* ---- UI ---- */
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kích hoạt cảnh báo'),
-        centerTitle: true,
-        backgroundColor: CustomColors.appbarColor,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            _switchTile(
-              label: 'Cảnh báo thiết bị',
-              value: _deviceAlert,
-              onChanged: (v) => setState(() => _deviceAlert = v),
-            ),
-            const SizedBox(height: 10),
-            _switchTile(
-              label: 'Còi thông báo',
-              value: _buzzerAlert,
-              onChanged: (v) => setState(() => _buzzerAlert = v),
-            ),
-            const SizedBox(height: 10),
-            _switchTile(
-              label: 'Gửi email cảnh báo',
-              value: _emailAlert,
-              onChanged: (v) => setState(() => _emailAlert = v),
-            ),
-          ],
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Kích hoạt cảnh báo'),
+          centerTitle: true,
+          backgroundColor: CustomColors.appbarColor,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              _switchTile(
+                label: 'Cảnh báo thiết bị',
+                value: _deviceAlert,
+                onChanged: (v) => setState(() => _deviceAlert = v),
+              ),
+              const SizedBox(height: 10),
+              _switchTile(
+                label: 'Còi thông báo',
+                value: _buzzerAlert,
+                onChanged: (v) => setState(() => _buzzerAlert = v),
+              ),
+              const SizedBox(height: 10),
+              _switchTile(
+                label: 'Gửi email cảnh báo',
+                value: _emailAlert,
+                onChanged: (v) => setState(() => _emailAlert = v),
+              ),
+            ],
+          ),
         ),
       ),
     );

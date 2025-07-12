@@ -1,83 +1,98 @@
+import 'package:data_table_2/data_table_2.dart';
+import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
 
 class StockItem {
   final String code;
   final String name;
-  final String category;
   final double quantity;
-  final String unit;
-  StockItem(this.code, this.name, this.category, this.quantity, this.unit);
+  StockItem(this.code, this.name, this.quantity);
 }
 
-class InventoryScreen extends StatelessWidget {
-  InventoryScreen({super.key});
+/// DataTableSource giúp PaginatedDataTable2 tự động sinh trang
+class _StockDataSource extends DataTableSource {
+  final List<StockItem> _items;
+  _StockDataSource(this._items);
 
-  final List<StockItem> _items = [
-    StockItem('F001', 'Cám nổi 3mm', 'Thức ăn', 820, 'kg'),
-    StockItem('F002', 'Cám chìm 2mm', 'Thức ăn', 650, 'kg'),
-    StockItem('F003', 'Grower 45%',   'Thức ăn', 300, 'kg'),
-    StockItem('E001', 'Máy sục khí',  'Thiết bị', 5,   'bộ'),
-    StockItem('E002', 'Máy cho ăn tự động', 'Thiết bị', 2, 'bộ'),
-    StockItem('E003', 'Máy bơm nước', 'Thiết bị', 3,   'bộ'),
-    ...List.generate(
+  @override
+  DataRow? getRow(int index) {
+    if (index >= _items.length) return null;
+    final i = _items[index];
+    return DataRow.byIndex(
+      index: index,
+      cells: [
+        DataCell(Text(i.code)),
+        DataCell(Text(i.name)),
+        DataCell(Text(i.quantity.toStringAsFixed(0))),
+      ],
+    );
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+  @override
+  int get rowCount => _items.length;
+  @override
+  int get selectedRowCount => 0;
+}
+
+class InventoryScreen extends StatefulWidget {
+  const InventoryScreen({super.key});
+
+  @override
+  State<InventoryScreen> createState() => _InventoryScreenState();
+}
+
+class _InventoryScreenState extends State<InventoryScreen> {
+  late final _StockDataSource _source;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final items = [
+      StockItem('F001', 'Cám nổi 3mm', 820),
+      StockItem('F002', 'Cám chìm 2mm', 650),
+      StockItem('F003', 'Grower 45%', 300),
+      StockItem('E001', 'Máy sục khí', 5),
+      StockItem('E002', 'Máy cho ăn tự động', 2),
+      StockItem('E003', 'Máy bơm nước', 3),
+      ...List.generate(
         20,
-        (i) => StockItem(
-            'F10$i', 'Thức ăn bổ sung $i', 'Thức ăn', 100 + i * 5, 'kg')),
-  ];
+        (i) => StockItem('F10$i', 'Thức ăn bổ sung $i', 100 + i * 5),
+      ),
+    ];
+
+    _source = _StockDataSource(items);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tồn kho'),
-        centerTitle: true,
-        backgroundColor: CustomColors.appbarColor,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Center(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,            // ⬅️ cuộn dọc
-              child: DataTable(
-                headingRowColor: MaterialStateProperty.resolveWith(
-                    (_) => Colors.black),
-                dataRowColor: MaterialStateProperty.resolveWith(
-                    (_) => Colors.grey.shade300),
-                columnSpacing: 32,
-                columns: const [
-                  DataColumn(
-                      label: Text('Mã',
-                          style: TextStyle(color: Colors.white))),
-                  DataColumn(
-                      label: Text('Tên vật phẩm',
-                          style: TextStyle(color: Colors.white))),
-                  DataColumn(
-                      label: Text('Loại',
-                          style: TextStyle(color: Colors.white))),
-                  DataColumn(
-                      numeric: true,
-                      label: Text('Số lượng',
-                          style: TextStyle(color: Colors.white))),
-                  DataColumn(
-                      label: Text('Đơn vị',
-                          style: TextStyle(color: Colors.white))),
-                ],
-                rows: _items
-                    .map((i) => DataRow(cells: [
-                          DataCell(Text(i.code)),
-                          DataCell(Text(i.name)),
-                          DataCell(Text(i.category)),
-                          DataCell(Text(i.quantity.toStringAsFixed(0))),
-                          DataCell(Text(i.unit)),
-                        ]))
-                    .toList(),
-                showCheckboxColumn: false,
-              ),
-            ),
-          ),
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Tồn kho'),
+          centerTitle: true,
+          backgroundColor: CustomColors.appbarColor,
+        ),
+        body: PaginatedDataTable2(
+          columns: const [
+            DataColumn2(label: Text('Mã'), size: ColumnSize.S),
+            DataColumn2(label: Text('Tên vật phẩm'), size: ColumnSize.L),
+            DataColumn2(
+                label: Text('Số lượng'), numeric: true, size: ColumnSize.S),
+          ],
+          source: _source,
+          rowsPerPage: 10, // mặc định mỗi trang 8 dòng
+          availableRowsPerPage: const [5, 10, 10, 20], // tuỳ chọn cho dropdown
+          headingRowColor: WidgetStateProperty.resolveWith(
+              (_) => Colors.black), // màu tiêu đề
+          headingTextStyle: TextStyle(color: Colors.white),
+          columnSpacing: 32,
+          showCheckboxColumn: false,
+          border: TableBorder.all(width: 0.3, color: Colors.grey.shade400),
         ),
       ),
     );

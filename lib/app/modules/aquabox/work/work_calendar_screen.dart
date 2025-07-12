@@ -18,7 +18,7 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
   @override
   void initState() {
     super.initState();
-    _controller.view = CalendarView.day; // mặc định Tháng
+    _controller.view = CalendarView.schedule; // mặc định Tháng
   }
 
   @override
@@ -64,7 +64,7 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
   /* ---------- UI ---------- */
   @override
   Widget build(BuildContext context) {
-    final isMonth = _controller.view == CalendarView.month;
+    final isMonth = _controller.view == CalendarView.schedule;
 
     return Scaffold(
       appBar: AppBar(
@@ -74,10 +74,11 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
         actions: [
           IconButton(
             tooltip: isMonth ? 'Xem theo ngày' : 'Xem theo tháng',
-            icon: Icon(isMonth ? Icons.view_day : Icons.calendar_month),
+            icon: Icon(
+                isMonth ? Icons.calendar_month : Icons.calendar_view_day_sharp),
             onPressed: () => setState(() {
               _controller.view =
-                  isMonth ? CalendarView.day : CalendarView.month;
+                  isMonth ? CalendarView.month : CalendarView.schedule;
             }),
           ),
         ],
@@ -86,14 +87,14 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
         controller: _controller,
         dataSource: _CalendarDS(_getDataSource()),
 
-        // Nhấn vào ô ngày (Month) → Day view
+        // Nhấn vào ô ngày (Month) → Schedule view
         onTap: (d) {
-          if (_controller.view == CalendarView.month &&
+          if (_controller.view == CalendarView.month && // 🟢 đang ở Month
               d.targetElement == CalendarElement.calendarCell &&
               d.date != null) {
             setState(() {
-              _controller.selectedDate = d.date;
-              _controller.view = CalendarView.day;
+              _controller.selectedDate = d.date; // chọn ngày
+              _controller.view = CalendarView.schedule; // chuyển Schedule
             });
           }
         },

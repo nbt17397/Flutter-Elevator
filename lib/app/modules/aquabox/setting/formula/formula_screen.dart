@@ -1,3 +1,4 @@
+import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
@@ -10,8 +11,9 @@ class FeedIngredient {
 
 class FeedFormula {
   String title;
+  String note;
   final List<FeedIngredient> ingredients;
-  FeedFormula(this.title, this.ingredients);
+  FeedFormula(this.title, this.note, this.ingredients);
 }
 
 class FeedFormulaScreen extends StatefulWidget {
@@ -22,15 +24,15 @@ class FeedFormulaScreen extends StatefulWidget {
 
 class _FeedFormulaScreenState extends State<FeedFormulaScreen> {
   final List<FeedFormula> _formulas = [
-    FeedFormula('Grower 32%', [
+    FeedFormula('Grower 32%', 'Dùng cho cá giống', [
       FeedIngredient('Cám nổi 3mm', 60),
       FeedIngredient('Cám chìm 2mm', 30),
-      FeedIngredient('Bột cá 45%', 10),
+      FeedIngredient('Bột cá 45%', 10)
     ]),
-    FeedFormula('Công thức tôm', [
+    FeedFormula('Công thức tôm', 'Dùng cho tôm giống', [
       FeedIngredient('Cám chìm 1mm', 70),
       FeedIngredient('Khoáng bổ sung', 20),
-      FeedIngredient('Vitamin', 10),
+      FeedIngredient('Vitamin', 10)
     ]),
   ];
 
@@ -41,6 +43,7 @@ class _FeedFormulaScreenState extends State<FeedFormulaScreen> {
 
   void _showFormulaDialog({FeedFormula? formula}) {
     final titleCtl = TextEditingController(text: formula?.title ?? '');
+    final noteCtl = TextEditingController(text: formula?.note ?? '');
     final formKey = GlobalKey<FormState>();
 
     Alert(
@@ -49,10 +52,20 @@ class _FeedFormulaScreenState extends State<FeedFormulaScreen> {
       style: _style,
       content: Form(
         key: formKey,
-        child: TextFormField(
-          controller: titleCtl,
-          decoration: _dec('Tên công thức'),
-          validator: (v) => v == null || v.isEmpty ? 'Không để trống' : null,
+        child: Column(
+          children: [
+            TextFormField(
+              controller: titleCtl,
+              decoration: _dec('Tên công thức'),
+              validator: (v) =>
+                  v == null || v.isEmpty ? 'Không để trống' : null,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: noteCtl,
+              decoration: _dec('Ghi chú (ví dụ: dùng cho cá giống)'),
+            ),
+          ],
         ),
       ),
       buttons: [
@@ -61,9 +74,11 @@ class _FeedFormulaScreenState extends State<FeedFormulaScreen> {
           if (!(formKey.currentState?.validate() ?? false)) return;
           setState(() {
             if (formula == null) {
-              _formulas.add(FeedFormula(titleCtl.text.trim(), []));
+              _formulas.add(
+                  FeedFormula(titleCtl.text.trim(), noteCtl.text.trim(), []));
             } else {
               formula.title = titleCtl.text.trim();
+              formula.note = noteCtl.text.trim();
             }
           });
           Navigator.pop(context);
@@ -97,7 +112,7 @@ class _FeedFormulaScreenState extends State<FeedFormulaScreen> {
               decoration: _dec('% khối lượng'),
               keyboardType: TextInputType.number,
               validator: (v) =>
-                  int.tryParse(v ?? '') == null ? 'Nhập số' : null,
+                  int.tryParse(v ?? '') == null ? 'Nhập số hợp lệ' : null,
             ),
           ],
         ),
@@ -152,81 +167,100 @@ class _FeedFormulaScreenState extends State<FeedFormulaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Menu thức ăn'),
-        backgroundColor: CustomColors.appbarColor,centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showFormulaDialog(),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: ListView.builder(
-          itemCount: _formulas.length,
-          itemBuilder: (_, i) {
-            final f = _formulas[i];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 0),
-              child: Theme(
-                data: Theme.of(context).copyWith(
-                  splashColor: Colors.transparent, // khi nhấn
-                  highlightColor: Colors.transparent, // ripple highlight
-                  hoverColor: Colors.transparent, // khi rê chuột (Web/Desktop)
-                ),
-                child: ExpansionTile(
-                  tilePadding: EdgeInsets.zero,
-                  childrenPadding: const EdgeInsets.only(left: 12, bottom: 8),
-                  title: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 5),
-                    decoration: _box,
-                    child: Row(
-                      children: [
-                        Expanded(child: Text(f.title)),
-                        PopupMenuButton<String>(
-                          onSelected: (v) {
-                            if (v == 'edit') _showFormulaDialog(formula: f);
-                            if (v == 'del') _confirmDeleteFormula(f);
-                          },
-                          itemBuilder: (_) => const [
-                            PopupMenuItem(value: 'edit', child: Text('Sửa')),
-                            PopupMenuItem(value: 'del', child: Text('Xoá')),
-                          ],
-                        )
-                      ],
-                    ),
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Menu thức ăn'),
+          backgroundColor: CustomColors.appbarColor,
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () => _showFormulaDialog(),
+            ),
+          ],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(12),
+          child: ListView.builder(
+            itemCount: _formulas.length,
+            itemBuilder: (_, i) {
+              final f = _formulas[i];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 0),
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
                   ),
-                  children: [
-                    ...f.ingredients.map((ing) => Container(
-                          margin: const EdgeInsets.only(bottom: 6, right: 8),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
-                          decoration: _box,
-                          child: Row(
+                  child: ExpansionTile(
+                    tilePadding: EdgeInsets.zero,
+                    childrenPadding: const EdgeInsets.only(left: 12, bottom: 8),
+                    title: Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                      decoration: _box,
+                      child: Row(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                  child: Text('${ing.name} (${ing.percent}%)')),
-                              IconButton(
-                                icon: const Icon(Icons.close, size: 18),
-                                onPressed: () => _confirmDeleteIng(f, ing),
-                              ),
+                              Text(f.title),
+                              if (f.note.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Text(
+                                    f.note,
+                                    style: const TextStyle(
+                                        fontSize: 12, color: Colors.black54),
+                                  ),
+                                ),
                             ],
                           ),
-                        )),
-                    TextButton.icon(
-                      onPressed: () => _showIngredientDialog(f),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Thêm thức ăn'),
+                          Spacer(),
+                          PopupMenuButton<String>(
+                            onSelected: (v) {
+                              if (v == 'edit') _showFormulaDialog(formula: f);
+                              if (v == 'del') _confirmDeleteFormula(f);
+                            },
+                            itemBuilder: (_) => const [
+                              PopupMenuItem(value: 'edit', child: Text('Sửa')),
+                              PopupMenuItem(value: 'del', child: Text('Xoá')),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
+                    children: [
+                      ...f.ingredients.map((ing) => Container(
+                            margin: const EdgeInsets.only(bottom: 6, right: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 4),
+                            decoration: _box,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                    child: Text('${ing.name} (${ing.percent}%)')),
+                                IconButton(
+                                  icon: const Icon(Icons.close, size: 18),
+                                  onPressed: () => _confirmDeleteIng(f, ing),
+                                ),
+                              ],
+                            ),
+                          )),
+                      TextButton.icon(
+                        onPressed: () => _showIngredientDialog(f),
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Thêm thức ăn'),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

@@ -11,9 +11,9 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
    <application
-        android:label="Aquabox V2"
+        android:label="SmartFarm"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
 
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBRnwxI-rPwX4SydNuQCV8b7iEduaJ6oNY"/>

@@ -12,12 +12,12 @@ import 'app/data/models/user_model.dart';
 import 'app/modules/authentication/bloc/authentication_bloc.dart';
 import 'app/services/mqtt/mqtt_provider.dart';
 import 'app/services/mqtt/mqtt_service.dart';
-// import 'utils/fcm_helper.dart';
-// import 'package:getx_skeleton/utils/awesome_notifications_helper.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 Future<void> main() async {
   // wait for bindings
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await checkAndRequestLocationPermission();
   final mqttService = MqttService();
   // initialize local db (hive) and register our custom adapters

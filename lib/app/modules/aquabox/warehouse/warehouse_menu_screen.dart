@@ -1,3 +1,4 @@
+import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
 
@@ -11,49 +12,52 @@ class WarehouseMenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quản lý kho'),
-        centerTitle: true,
-        backgroundColor: CustomColors.appbarColor,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: GridView.count(
-          crossAxisCount: 2,
-          childAspectRatio: 1.2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          children: [
-            _menuButton(
-              context,
-              asset: 'assets/images/inventory.png',
-              label: 'Tồn kho',
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => InventoryScreen())),
-            ),
-            _menuButton(
-              context,
-              asset: 'assets/images/inbound.png',
-              label: 'Nhập kho',
-              onTap: () => Navigator.push(
-                  context, MaterialPageRoute(builder: (_) => InboundScreen())),
-            ),
-            _menuButton(
-              context,
-              asset: 'assets/images/outbound.png',
-              label: 'Xuất kho',
-              onTap: () => Navigator.push(
-                  context, MaterialPageRoute(builder: (_) => OutboundScreen())),
-            ),
-            _menuButton(
-              context,
-              asset: 'assets/images/checklist.png',
-              label: 'Báo cáo',
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => WarehouseReportScreen())),
-            ),
-          ],
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Quản lý kho'),
+          centerTitle: true,
+          backgroundColor: CustomColors.appbarColor,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(12),
+          child: GridView.count(
+            crossAxisCount: 2,
+            childAspectRatio: 1.2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            children: [
+              _menuButton(
+                context,
+                asset: 'assets/images/inventory.png',
+                label: 'Tồn kho',
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => InventoryScreen())),
+              ),
+              _menuButton(
+                context,
+                asset: 'assets/images/inbound.png',
+                label: 'Nhập kho',
+                onTap: () => Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => InboundScreen())),
+              ),
+              _menuButton(
+                context,
+                asset: 'assets/images/outbound.png',
+                label: 'Xuất kho',
+                onTap: () => Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => OutboundScreen())),
+              ),
+              _menuButton(
+                context,
+                asset: 'assets/images/checklist.png',
+                label: 'Báo cáo',
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => WarehouseReportScreen())),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -68,8 +72,7 @@ class WarehouseMenuScreen extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          border: Border.all(color: Colors.black12),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -77,8 +80,8 @@ class WarehouseMenuScreen extends StatelessWidget {
           children: [
             Image.asset(
               asset,
-              width: 48,
-              height: 48,
+              width: 58,
+              height: 58,
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 8),

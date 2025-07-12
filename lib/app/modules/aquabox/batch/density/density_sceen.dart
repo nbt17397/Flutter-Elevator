@@ -1,3 +1,4 @@
+import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -48,15 +49,15 @@ class _DensityScreenState extends State<DensityScreen> {
         border: OutlineInputBorder(
           // default
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.black),
+          borderSide: const BorderSide(color: Colors.black26),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.black),
+          borderSide: const BorderSide(color: Colors.black26),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.black, width: 1),
+          borderSide: const BorderSide(color: Colors.black26, width: 1),
         ),
       );
 
@@ -73,98 +74,102 @@ class _DensityScreenState extends State<DensityScreen> {
   /* ---- UI ---- */
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cập nhật mật độ nuôi'),
-        centerTitle: true,
-        backgroundColor: CustomColors.appbarColor,
-      ),
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Cập nhật mật độ nuôi'),
+          centerTitle: true,
+          backgroundColor: CustomColors.appbarColor,
+        ),
 
-      /* --- FORM BODY --- */
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /* --- AUTO SWITCH --- */
-              Row(
-                children: [
-                  const Expanded(
-                      child: Text('Cập nhật tự động',
-                          style: TextStyle(fontWeight: FontWeight.w600))),
-                  Switch(
-                    value: _auto,
-                    onChanged: (v) => setState(() => _auto = v),
+        /* --- FORM BODY --- */
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(12),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /* --- AUTO SWITCH --- */
+                Row(
+                  children: [
+                    const Expanded(
+                        child: Text('Cập nhật tự động',
+                            style: TextStyle(fontWeight: FontWeight.w600))),
+                    Switch(
+                      value: _auto,
+                      onChanged: (v) => setState(() => _auto = v),
 
-                    // MÀU KHI BẬT
-                    activeColor: Colors.green,
-                    activeTrackColor: Colors.green.shade200,
+                      // MÀU KHI BẬT
+                      activeColor: Colors.green,
+                      activeTrackColor: Colors.green.shade200,
 
-                    // MÀU KHI TẮT
-                    inactiveThumbColor: Colors.white,
-                    inactiveTrackColor: Colors.grey.shade400,
-                  )
-                ],
-              ),
-              const SizedBox(height: 16),
+                      // MÀU KHI TẮT
+                      inactiveThumbColor: Colors.white,
+                      inactiveTrackColor: Colors.grey.shade400,
+                    )
+                  ],
+                ),
+                const SizedBox(height: 16),
 
-              /* --- POND DROPDOWN --- */
-              DropdownButtonFormField<Pond>(
-                decoration: _dec('Chọn bể nuôi'),
-                items: _ponds
-                    .map((p) => DropdownMenuItem(
-                          value: p,
-                          child: Text('${p.code} • ${p.name}'),
-                        ))
-                    .toList(),
-                validator: (v) => v == null ? 'Vui lòng chọn bể nuôi' : null,
-                onChanged: (p) => setState(() => _selectedPond = p),
-              ),
-              const SizedBox(height: 16),
+                /* --- POND DROPDOWN --- */
+                DropdownButtonFormField<Pond>(
+                  decoration: _dec('Chọn bể nuôi'),
+                  items: _ponds
+                      .map((p) => DropdownMenuItem(
+                            value: p,
+                            child: Text('${p.code} • ${p.name}'),
+                          ))
+                      .toList(),
+                  validator: (v) => v == null ? 'Vui lòng chọn bể nuôi' : null,
+                  onChanged: (p) => setState(() => _selectedPond = p),
+                ),
+                const SizedBox(height: 16),
 
-              /* --- QUANTITY --- */
-              TextFormField(
-                controller: _qtyCtl,
-                decoration: _dec('Số lượng con'),
-                keyboardType: TextInputType.number,
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Nhập số lượng' : null,
-              ),
-              const SizedBox(height: 16),
+                /* --- QUANTITY --- */
+                TextFormField(
+                  controller: _qtyCtl,
+                  decoration: _dec('Số lượng con'),
+                  keyboardType: TextInputType.number,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Nhập số lượng' : null,
+                ),
+                const SizedBox(height: 16),
 
-              /* --- DENSITY --- */
-              TextFormField(
-                controller: _densityCtl,
-                decoration: _dec('Mật độ (con/m³)'),
-                keyboardType: TextInputType.number,
-                validator: (v) => v == null || v.isEmpty ? 'Nhập mật độ' : null,
-              ),
-              const SizedBox(height: 16),
-            ],
+                /* --- DENSITY --- */
+                TextFormField(
+                  controller: _densityCtl,
+                  decoration: _dec('Mật độ (con/m³)'),
+                  keyboardType: TextInputType.number,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Nhập mật độ' : null,
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
-      ),
 
-      /* --- BOTTOM BUTTON (thủ công) --- */
-      bottomNavigationBar: Padding(
-          padding: const EdgeInsets.all(16),
-          child: ElevatedButton(
-            onPressed: _auto ? null : _submit,
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
-              backgroundColor: CustomColors.appbarColor,
-              disabledBackgroundColor: Colors.grey,
-            ),
-            child: const Text(
-              'Cập nhật thủ công',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14),
-            ),
-          )),
+        /* --- BOTTOM BUTTON (thủ công) --- */
+        bottomNavigationBar: Padding(
+            padding: const EdgeInsets.all(16),
+            child: ElevatedButton(
+              onPressed: _auto ? null : _submit,
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+                backgroundColor: CustomColors.appbarColor,
+                disabledBackgroundColor: Colors.grey,
+              ),
+              child: const Text(
+                'Cập nhật thủ công',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14),
+              ),
+            )),
+      ),
     );
   }
 }

@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'package:data_table_2/data_table_2.dart'; // ⬅️ import
+import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -21,8 +23,8 @@ class InboundReceipt {
   final List<InboundLine> lines;
   InboundReceipt(this.code, this.date, this.supplier, this.lines);
 
-  int    get itemCount => lines.length;
-  double get totalKg   => lines.fold(0, (s, e) => s + e.weightKg);
+  int get itemCount => lines.length;
+  double get totalKg => lines.fold(0, (s, e) => s + e.weightKg);
 }
 
 /* ----------------- Screen ----------------- */
@@ -32,7 +34,7 @@ class InboundDetailScreen extends StatelessWidget {
   final _fmt = DateFormat('dd/MM/yyyy');
   final _rng = Random();
 
-  /* ---- sinh 1 phiếu nhập giả ---- */
+  /* ---- tạo phiếu giả ---- */
   InboundReceipt _fakeReceipt() {
     final suppliers = ['Cargill VN', 'GreenFeed', 'Skretting', 'An Phát'];
     final items = [
@@ -42,13 +44,12 @@ class InboundDetailScreen extends StatelessWidget {
       {'code': 'E002', 'name': 'Bạt lót hồ', 'unit': 'cuộn'},
     ];
 
-    // tạo 3–6 dòng vật phẩm
-    final lines = List.generate(3 + _rng.nextInt(4), (i) {
-      final itm = items[_rng.nextInt(items.length)];
-      final qty = 10 + _rng.nextInt(40);         // 10–50
-      final w   = itm['unit']=='kg' ? qty.toDouble() : qty * 5;
-      return InboundLine(itm['code']!, itm['name']!, qty.toDouble(),
-          itm['unit']!, w.toDouble());
+    final lines = List.generate(3 + _rng.nextInt(4), (_) {
+      final it = items[_rng.nextInt(items.length)];
+      final qty = 10 + _rng.nextInt(40);
+      final w = it['unit'] == 'kg' ? qty.toDouble() : qty * 5;
+      return InboundLine(
+          it['code']!, it['name']!, qty.toDouble(), it['unit']!, w.toDouble());
     });
 
     return InboundReceipt(
@@ -61,79 +62,79 @@ class InboundDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final receipt = _fakeReceipt();            // 👉 sinh dữ liệu tại đây
+    final receipt = _fakeReceipt();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Phiếu nhập: ${receipt.code}'),
-        backgroundColor: CustomColors.appbarColor,
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /* ---- Thông tin chung ---- */
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _info('Mã phiếu', receipt.code),
-                  _info('Ngày nhập', _fmt.format(receipt.date)),
-                  _info('Nhà cung cấp', receipt.supplier),
-                  const SizedBox(height: 4),
-                  _info('Số mục', receipt.itemCount.toString()),
-                  _info('Tổng khối lượng', '${receipt.totalKg.toStringAsFixed(0)} kg'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            /* ---- Bảng chi tiết ---- */
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: DataTable(
-                    headingRowColor: MaterialStateProperty.resolveWith(
-                        (_) => Colors.black),
-                    dataRowColor: MaterialStateProperty.resolveWith(
-                        (_) => Colors.grey.shade300),
-                    columnSpacing: 28,
-                    columns: const [
-                      DataColumn(label: Text('Mã', style: _headStyle)),
-                      DataColumn(label: Text('Tên vật phẩm', style: _headStyle)),
-                      DataColumn(label: Text('SL', style: _headStyle), numeric: true),
-                      DataColumn(label: Text('Đơn vị', style: _headStyle)),
-                      DataColumn(label: Text('Khối lượng (kg)', style: _headStyle), numeric: true),
-                    ],
-                    rows: receipt.lines.map((l) => DataRow(cells: [
-                      DataCell(Text(l.itemCode)),
-                      DataCell(Text(l.itemName)),
-                      DataCell(Text(l.quantity.toStringAsFixed(0))),
-                      DataCell(Text(l.unit)),
-                      DataCell(Text(l.weightKg.toStringAsFixed(0))),
-                    ])).toList(),
-                    showCheckboxColumn: false,
-                  ),
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: Text(receipt.code),
+          backgroundColor: CustomColors.appbarColor,
+          centerTitle: true,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /* ---- Thông tin chung ---- */
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _info('Mã phiếu', receipt.code),
+                    _info('Ngày nhập', _fmt.format(receipt.date)),
+                    _info('Nhà cung cấp', receipt.supplier),
+                    _info('Trạng thái', 'Hoàn thành'),
+                  ],
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+
+              /* ---- Bảng chi tiết (DataTable2) ---- */
+              Expanded(
+                child: DataTable2(
+                  columnSpacing: 24,
+                  headingRowColor:
+                      WidgetStateProperty.resolveWith((_) => Colors.black),
+                  headingTextStyle: const TextStyle(color: Colors.white),
+                  dataRowColor:
+                      WidgetStateProperty.resolveWith((_) => Colors.white),
+                  showCheckboxColumn: false,
+                  columns: const [
+                    DataColumn2(label: Text('Mã'), size: ColumnSize.S),
+                    DataColumn2(
+                        label: Text('Tên vật phẩm'), size: ColumnSize.L),
+                    DataColumn2(
+                        label: Text('SL'), numeric: true, size: ColumnSize.S),
+                    DataColumn2(label: Text('Đơn vị'), size: ColumnSize.S),
+                  ],
+                  rows: receipt.lines
+                      .map(
+                        (l) => DataRow(cells: [
+                          DataCell(Text(l.itemCode)),
+                          DataCell(Text(l.itemName)),
+                          DataCell(Text(l.quantity.toStringAsFixed(0))),
+                          DataCell(Text(l.unit)),
+                        ]),
+                      )
+                      .toList(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  /* ---- helper info line ---- */
+  /* ---- helper ---- */
   Widget _info(String k, String v) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
         child: Row(
@@ -146,5 +147,3 @@ class InboundDetailScreen extends StatelessWidget {
         ),
       );
 }
-
-const _headStyle = TextStyle(color: Colors.white);

@@ -1,6 +1,11 @@
+// lib/screens/notification_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../components/app_background.dart';
 
+/* =================================================================== */
+/*  MODELS                                                             */
+/* =================================================================== */
 enum NoticeType { taskAssigned, taskLate, deviceError }
 
 class NotificationItem {
@@ -19,6 +24,9 @@ class NotificationItem {
   });
 }
 
+/* =================================================================== */
+/*  MAIN SCREEN                                                        */
+/* =================================================================== */
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
 
@@ -29,10 +37,13 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> {
   final List<NotificationItem> _items = [];
   final ScrollController _scrollCtrl = ScrollController();
+
+  /* paging giả lập --------------------------------------------------- */
   bool _isLoadingMore = false;
   static const int _pageSize = 20;
   static const int _maxItems = 100;
 
+  /* ------------------------------------------------------------------ */
   @override
   void initState() {
     super.initState();
@@ -46,8 +57,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     super.dispose();
   }
 
-  /* ---- helpers ---------------------------------------------------------- */
-
+  /* ---- helpers ----------------------------------------------------- */
   void _onScroll() {
     if (_scrollCtrl.position.pixels >=
             _scrollCtrl.position.maxScrollExtent - 200 &&
@@ -59,7 +69,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   void _loadMore() {
     setState(() => _isLoadingMore = true);
-    // giả lập call API
+
+    // Giả lập call API 1s
     Future.delayed(const Duration(seconds: 1), () {
       final start = _items.length;
       final count = (_items.length + _pageSize) > _maxItems
@@ -103,79 +114,125 @@ class _NotificationScreenState extends State<NotificationScreen> {
         NoticeType.deviceError => Colors.red.shade600
       };
 
-  /* ---- UI ---------------------------------------------------------------- */
+  /* ---- UI ---------------------------------------------------------- */
+  @override
+  Widget build(BuildContext context) {
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: RefreshIndicator(
+          onRefresh: () async {
+            setState(() {
+              _items.clear();
+              _generateFakeData(0, _pageSize);
+            });
+          },
+          child: ListView.separated(
+            controller: _scrollCtrl,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(top: 30, left: 12, right: 12),
+            itemCount: _items.length + (_isLoadingMore ? 1 : 0),
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              /* ô loading cuối danh sách -------------------------------- */
+              if (index >= _items.length) {
+                return const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                );
+              }
+
+              final n = _items[index];
+
+              return _NotificationTile(
+                n: n,
+                icon: _iconFor(n.type),
+                iconColor: _colorFor(n.type),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/* =================================================================== */
+/*  SINGLE TILE WIDGET                                                 */
+/* =================================================================== */
+class _NotificationTile extends StatelessWidget {
+  final NotificationItem n;
+  final IconData icon;
+  final Color iconColor;
+
+  const _NotificationTile({
+    required this.n,
+    required this.icon,
+    required this.iconColor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: RefreshIndicator(
-        onRefresh: () async {
-          setState(() {
-            _items.clear();
-            _generateFakeData(0, _pageSize);
-          });
-        },
-        child: ListView.separated(
-          controller: _scrollCtrl,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(top: 30, left: 12, right: 12),
-          itemCount: _items.length + (_isLoadingMore ? 1 : 0),
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (context, index) {
-            if (index >= _items.length) {
-              // ô loading cuối danh sách
-              return const Center(
-                  child: Padding(
-                padding: EdgeInsets.all(16),
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ));
-            }
-            final n = _items[index];
-            return Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.black12),
+    return Material(
+      borderRadius: BorderRadius.circular(8),
+      color: Colors.white,
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /* ------------ HÌNH VUÔNG --------------------------------- */
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                width: 65,
+                height: 65,
+                color: Colors.blue.shade50,
+                alignment: Alignment.center,
+                child: Icon(icon, size: 32, color: iconColor),
               ),
-              child: Row(
+            ),
+
+            /* ------------ DIVIDER DỌC (không có nút tròn) ------------- */
+            Container(
+              width: 1,
+              height: 65,                               // cao bằng hình
+              margin: const EdgeInsets.symmetric(horizontal: 12),
+              color: Colors.black12,
+            ),
+
+            /* ------------ THÔNG TIN ---------------------------------- */
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(_iconFor(n.type), size: 28, color: _colorFor(n.type)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(n.title,
-                            style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87)),
-                        const SizedBox(height: 4),
-                        Text(n.message,
-                            style: const TextStyle(
-                                fontSize: 13, color: Colors.black54)),
-                        const SizedBox(height: 4),
-                        Text(
-                          _timeAgo(n.time),
-                          style: TextStyle(
-                              fontSize: 12, color: Colors.blueGrey.shade400),
-                        ),
-                      ],
-                    ),
+                  Text(n.title,
+                      style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87)),
+                  const SizedBox(height: 4),
+                  Text(n.message,
+                      style:
+                          const TextStyle(fontSize: 13, color: Colors.black54)),
+                  const SizedBox(height: 6),
+                  Text(
+                    _timeAgo(n.time),
+                    style:
+                        TextStyle(fontSize: 12, color: Colors.blueGrey.shade400),
                   ),
                 ],
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
   }
 
-  String _timeAgo(DateTime dt) {
+  /* util -------------------------------------------------------------- */
+  static String _timeAgo(DateTime dt) {
     final diff = DateTime.now().difference(dt);
     if (diff.inMinutes < 60) return '${diff.inMinutes} phút trước';
     if (diff.inHours < 24) return '${diff.inHours} giờ trước';

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -70,33 +71,36 @@ class WarehouseReportScreen extends StatelessWidget {
     final h = MediaQuery.of(context).size.height;
     final chartH = h * 0.37;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Báo cáo kho theo tháng'),
-        centerTitle: true,
-        backgroundColor: CustomColors.appbarColor,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              _chartSection(
-                title: 'Thức ăn (kg)',
-                data: _feedRows,
-                colorIn: Colors.blue.shade700,
-                colorOut: Colors.blue.shade200,
-                height: chartH,
-              ),
-              const SizedBox(height: 20),
-              _chartSection(
-                title: 'Thiết bị (số lượng)',
-                data: _equipRows,
-                colorIn: Colors.orange.shade700,
-                colorOut: Colors.orange.shade300,
-                height: chartH,
-              ),
-            ],
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Báo cáo kho theo tháng'),
+          centerTitle: true,
+          backgroundColor: CustomColors.appbarColor,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(12),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _chartSection(
+                  title: 'Thức ăn (kg)',
+                  data: _feedRows,
+                  colorIn: Colors.blue.shade700,
+                  colorOut: Colors.blue.shade200,
+                  height: chartH,
+                ),
+                const SizedBox(height: 20),
+                _chartSection(
+                  title: 'Thiết bị (số lượng)',
+                  data: _equipRows,
+                  colorIn: Colors.orange.shade700,
+                  colorOut: Colors.orange.shade300,
+                  height: chartH,
+                ),
+              ],
+            ),
           ),
         ),
       ),

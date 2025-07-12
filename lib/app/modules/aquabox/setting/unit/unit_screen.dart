@@ -1,3 +1,4 @@
+import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
@@ -28,7 +29,7 @@ class _UnitScreenState extends State<UnitScreen> {
   /* --------- BORDER STYLE --------- */
   BoxDecoration get _box => BoxDecoration(
         border: Border.all(color: Colors.grey.shade400),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8),color: Colors.white
       );
 
   /* --------- HỘP THOẠI THÊM / SỬA --------- */
@@ -121,55 +122,58 @@ class _UnitScreenState extends State<UnitScreen> {
   /* --------- UI --------- */
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Đơn vị'),
-        centerTitle: true,
-        backgroundColor: CustomColors.appbarColor,
-        actions: [
-          IconButton(
-            onPressed: () => _showUnitDialog(),
-            icon: const Icon(Icons.add),
-            tooltip: 'Thêm đơn vị',
-          )
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: ListView.separated(
-          itemCount: _units.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (ctx, i) {
-            final u = _units[i];
-            return Container(
-              height: 50,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: _box,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(u.name, style: const TextStyle(fontSize: 15)),
-                  ),
-                  PopupMenuButton<String>(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        _showUnitDialog(unit: u);
-                      } else if (value == 'delete') {
-                        _confirmDelete(u);
-                      }
-                    },
-                    itemBuilder: (_) => const [
-                      PopupMenuItem(value: 'edit', child: Text('Sửa')),
-                      PopupMenuItem(value: 'delete', child: Text('Xoá')),
-                    ],
-                    icon: const Icon(Icons.more_vert),
-                  ),
-                ],
-              ),
-            );
-          },
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Đơn vị'),
+          centerTitle: true,
+          backgroundColor: CustomColors.appbarColor,
+          actions: [
+            IconButton(
+              onPressed: () => _showUnitDialog(),
+              icon: const Icon(Icons.add),
+              tooltip: 'Thêm đơn vị',
+            )
+          ],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(12),
+          child: ListView.separated(
+            itemCount: _units.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (ctx, i) {
+              final u = _units[i];
+              return Container(
+                height: 50,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: _box,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(u.name, style: const TextStyle(fontSize: 15)),
+                    ),
+                    PopupMenuButton<String>(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          _showUnitDialog(unit: u);
+                        } else if (value == 'delete') {
+                          _confirmDelete(u);
+                        }
+                      },
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(value: 'edit', child: Text('Sửa')),
+                        PopupMenuItem(value: 'delete', child: Text('Xoá')),
+                      ],
+                      icon: const Icon(Icons.more_vert),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
