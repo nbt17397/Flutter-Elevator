@@ -27,7 +27,6 @@ class _PondScreenState extends State<PondScreen> {
   List<PondModel> get _ponds => widget.system.ponds;
 
   BoxDecoration get _box => BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400),
         borderRadius: BorderRadius.circular(8),
         color: Colors.white,
       );

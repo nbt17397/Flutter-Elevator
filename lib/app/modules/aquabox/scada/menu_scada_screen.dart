@@ -227,7 +227,7 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                       itemBuilder: (_) => [
                                         const PopupMenuItem(
                                             value: 'control',
-                                            child: Text('Điều khiển',
+                                            child: Text('Cảnh báo',
                                                 style:
                                                     TextStyle(fontSize: 15))),
                                         const PopupMenuItem(

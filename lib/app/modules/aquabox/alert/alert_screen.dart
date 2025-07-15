@@ -3,6 +3,7 @@ import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 /// ======== MODEL (fake) ========
 class TaskAlert {
@@ -10,7 +11,7 @@ class TaskAlert {
   final String title;
   final DateTime date;
   final String level;
-  bool processed; // trạng thái xử lý
+  bool processed;
   TaskAlert(this.code, this.title, this.date, this.level,
       {this.processed = false});
 }
@@ -44,7 +45,7 @@ class _AlertScreenState extends State<AlertScreen>
   bool _loadingTask = false;
   bool _loadingDevice = false;
 
-  int _taskFilter = 0; // 0 = Unprocessed, 1 = Processed
+  int _taskFilter = 0;
 
   final ScrollController _taskCtrl = ScrollController();
   final ScrollController _deviceCtrl = ScrollController();
@@ -134,11 +135,46 @@ class _AlertScreenState extends State<AlertScreen>
         'Trung bình' => Colors.orange.shade700,
         _ => Colors.green.shade600,
       };
+
   IconData _iconFor(String lv) => switch (lv) {
         'Cao' => Icons.warning,
         'Trung bình' => Icons.report_problem,
         _ => Icons.info,
       };
+
+  void _showConfirmDialog(TaskAlert alert) {
+    final isProcessed = alert.processed;
+    final msg = isProcessed
+        ? 'Bạn có muốn xác nhận hoàn thành?'
+        : 'Bạn có muốn xác nhận hoàn thành?';
+
+    Alert(
+      context: context,
+      type: AlertType.warning,
+      title: "Xác nhận",
+      desc: msg,
+      buttons: [
+        DialogButton(
+          child: const Text("Hủy", style: TextStyle(color: Colors.white)),
+          onPressed: () => Navigator.pop(context),
+          color: Colors.grey,
+        ),
+        DialogButton(
+          child: Text(
+            "Hoàn thành",
+            style: const TextStyle(color: Colors.white),
+          ),
+          onPressed: () {
+            setState(() {
+              alert.processed = !alert.processed;
+            });
+            Navigator.pop(context);
+          },
+          color: Colors.blueAccent,
+        )
+      ],
+    ).show();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -151,6 +187,13 @@ class _AlertScreenState extends State<AlertScreen>
             title: const Text('Cảnh báo'),
             centerTitle: true,
             backgroundColor: CustomColors.appbarColor,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.history),
+                tooltip: 'Lịch sử đã hoàn thành',
+                onPressed: () {},
+              ),
+            ],
           ),
           body: TabBarView(
             children: [
@@ -189,6 +232,7 @@ class _AlertScreenState extends State<AlertScreen>
                 title: a.title,
                 subtitle: _fmt.format(a.date),
                 level: a.level,
+                onTap: () => _showConfirmDialog(a),
               );
             },
           ),
@@ -259,54 +303,59 @@ class _AlertScreenState extends State<AlertScreen>
     required String title,
     required String subtitle,
     required String level,
+    VoidCallback? onTap,
   }) =>
-      Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: _colorFor(level).withOpacity(.15),
-                borderRadius: BorderRadius.circular(6),
+      InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: _colorFor(level).withOpacity(.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(_iconFor(level), color: _colorFor(level)),
               ),
-              child: Icon(_iconFor(level), color: _colorFor(level)),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87)),
-                  const SizedBox(height: 4),
-                  Text(subtitle,
-                      style:
-                          const TextStyle(fontSize: 12, color: Colors.black54)),
-                ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87)),
+                    const SizedBox(height: 4),
+                    Text(subtitle,
+                        style: const TextStyle(
+                            fontSize: 12, color: Colors.black54)),
+                  ],
+                ),
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: _colorFor(level).withOpacity(.15),
-                borderRadius: BorderRadius.circular(20),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _colorFor(level).withOpacity(.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(level,
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: _colorFor(level))),
               ),
-              child: Text(level,
-                  style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: _colorFor(level))),
-            ),
-          ],
+            ],
+          ),
         ),
       );
 }

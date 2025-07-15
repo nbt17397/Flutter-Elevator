@@ -40,7 +40,6 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
   ];
 
   BoxDecoration get _box => BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400),
         borderRadius: BorderRadius.circular(8),
         color: Colors.white,
       );

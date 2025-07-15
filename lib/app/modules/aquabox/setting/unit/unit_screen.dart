@@ -28,7 +28,6 @@ class _UnitScreenState extends State<UnitScreen> {
 
   /* --------- BORDER STYLE --------- */
   BoxDecoration get _box => BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400),
         borderRadius: BorderRadius.circular(8),color: Colors.white
       );
 
@@ -151,7 +150,8 @@ class _UnitScreenState extends State<UnitScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text(u.name, style: const TextStyle(fontSize: 15)),
+                      child: Text(u.name, style: const TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold)),
                     ),
                     PopupMenuButton<String>(
                       shape: RoundedRectangleBorder(

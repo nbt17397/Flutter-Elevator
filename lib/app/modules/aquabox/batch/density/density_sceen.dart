@@ -140,10 +140,10 @@ class _DensityScreenState extends State<DensityScreen> {
                 /* --- DENSITY --- */
                 TextFormField(
                   controller: _densityCtl,
-                  decoration: _dec('Mật độ (con/m³)'),
+                  decoration: _dec('Thể tích (m³)'),
                   keyboardType: TextInputType.number,
                   validator: (v) =>
-                      v == null || v.isEmpty ? 'Nhập mật độ' : null,
+                      v == null || v.isEmpty ? 'Nhập thể tích' : null,
                 ),
                 const SizedBox(height: 16),
               ],

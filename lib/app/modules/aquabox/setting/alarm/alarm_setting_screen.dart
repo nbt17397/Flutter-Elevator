@@ -11,14 +11,12 @@ class AlertSettingScreen extends StatefulWidget {
 
 class _AlertSettingScreenState extends State<AlertSettingScreen> {
   /* ---- STATE ---- */
-  bool _deviceAlert   = true;
-  bool _buzzerAlert   = false;
-  bool _emailAlert    = true;
+  bool _deviceAlert = true;
+  bool _buzzerAlert = false;
+  bool _emailAlert = true;
 
   BoxDecoration get _box => BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400),
-        borderRadius: BorderRadius.circular(8),color: Colors.white
-      );
+      borderRadius: BorderRadius.circular(8), color: Colors.white);
 
   /* ---- UI ---- */
   @override
@@ -71,7 +69,8 @@ class _AlertSettingScreenState extends State<AlertSettingScreen> {
       decoration: _box,
       child: Row(
         children: [
-          Expanded(child: Text(label, style: const TextStyle(fontSize: 15))),
+          Expanded(child: Text(label,style: const TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold))),
           Switch(
             value: value,
             onChanged: onChanged,

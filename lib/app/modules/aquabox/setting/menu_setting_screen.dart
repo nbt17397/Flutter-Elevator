@@ -55,6 +55,12 @@ class FarmSettingsMenuScreen extends StatelessWidget {
             context, CupertinoPageRoute(builder: (_) => EmployeeScreen())),
       ),
       _MenuItem(
+        'Vật nuôi',
+        Icons.feed,
+        () => Navigator.push(
+            context, CupertinoPageRoute(builder: (_) => UnitScreen())),
+      ),
+      _MenuItem(
         'Đơn vị',
         Icons.straighten,
         () => Navigator.push(
