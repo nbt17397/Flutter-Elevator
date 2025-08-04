@@ -1,5 +1,3 @@
-// lib/screens/scada_menu_screen.dart
-
 import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,7 +5,6 @@ import 'package:flutter/material.dart';
 
 import 'control_screen.dart';
 import 'maintenance_screen.dart';
-// import 'control_screen.dart';
 
 class ScadaMenuScreen extends StatefulWidget {
   const ScadaMenuScreen({super.key});
@@ -17,38 +14,61 @@ class ScadaMenuScreen extends StatefulWidget {
 }
 
 class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
-  // ----- Danh sách hệ + mục con -----
-  final _systems = <String, List<String>>{
-    'Hệ 1': [
-      'Hệ thống lọc nước',
-      'Bể nuôi 1',
-      'Bể nuôi 2',
-      'Bể nuôi 3',
-      'Máy cho ăn tự động 1',
-      'Máy cho ăn tự động 2',
+  // Mỗi item gồm label, active, image
+  final _systems = <String, List<Map<String, dynamic>>>{
+    'Hệ 1': _defaultItems(),
+    'Hệ 2': _defaultItems(),
+    'Hệ 3': _defaultItems(),
+    'Trạm bơm': [
+      {
+        'label': 'Hệ thống lọc nước',
+        'active': false,
+        'image': 'assets/images/scada.png'
+      },
     ],
-    'Hệ 2': [
-      'Hệ thống lọc nước',
-      'Bể nuôi 1',
-      'Bể nuôi 2',
-      'Bể nuôi 3',
-      'Máy cho ăn tự động 1',
-      'Máy cho ăn tự động 2',
-    ],
-    'Hệ 3': [
-      'Hệ thống lọc nước',
-      'Bể nuôi 1',
-      'Bể nuôi 2',
-      'Bể nuôi 3',
-      'Máy cho ăn tự động 1',
-      'Máy cho ăn tự động 2',
-    ],
-    'Trạm bơm': ['Hệ thống lọc nước'],
     'Nhà khí': [
-      'Hệ thống blower',
-      'Hệ thống oxygen',
+      {
+        'label': 'Hệ thống blower',
+        'active': false,
+        'image': 'assets/images/scada.png'
+      },
+      {
+        'label': 'Hệ thống oxygen',
+        'active': false,
+        'image': 'assets/images/oxygen.png'
+      },
     ],
   };
+
+  static List<Map<String, dynamic>> _defaultItems() {
+    return [
+      {
+        'label': 'Demo thủy sản',
+        'active': true,
+        'image': 'assets/images/scada.png'
+      },
+      {
+        'label': 'Bể nuôi 1',
+        'active': false,
+        'image': 'assets/images/pond.png'
+      },
+      {
+        'label': 'Bể nuôi 2',
+        'active': false,
+        'image': 'assets/images/pond.png'
+      },
+      {
+        'label': 'Bể nuôi 3',
+        'active': false,
+        'image': 'assets/images/pond.png'
+      },
+      {
+        'label': 'Oxygen',
+        'active': false,
+        'image': 'assets/images/oxygen.png'
+      },
+    ];
+  }
 
   late String _currentKey;
 
@@ -56,17 +76,6 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
   void initState() {
     super.initState();
     _currentKey = _systems.keys.first;
-  }
-
-  // ---- Gán icon gợi ý cho từng label ----
-  IconData _iconFor(String label) {
-    final l = label.toLowerCase();
-    if (l.contains('lọc nước')) return Icons.water_drop;
-    if (l.contains('bể nuôi')) return Icons.pool;
-    if (l.contains('máy cho ăn')) return Icons.restaurant;
-    if (l.contains('blower')) return Icons.air;
-    if (l.contains('oxygen')) return Icons.bubble_chart;
-    return Icons.devices;
   }
 
   @override
@@ -138,8 +147,12 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                             crossAxisCount: crossCount,
                             mainAxisSpacing: 12,
                             crossAxisSpacing: 12,
-                            childAspectRatio: 1.2,
-                            children: items.map((label) {
+                            childAspectRatio: 1.3,
+                            children: items.map((item) {
+                              final label = item['label'] as String;
+                              final active = item['active'] as bool;
+                              final image = item['image'] as String;
+
                               return Stack(
                                 children: [
                                   // Card thiết bị chính
@@ -147,11 +160,23 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                     child: InkWell(
                                       borderRadius: BorderRadius.circular(8),
                                       onTap: () {
+                                        if (!active) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              duration: Duration(seconds: 1),
+                                              content: Text(
+                                                  '$label hiện chưa hoạt động.'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                          return;
+                                        }
                                         Navigator.push(
                                           context,
                                           CupertinoPageRoute(
                                             builder: (_) => DeviceControlScreen(
-                                                label: label),
+                                                label: image),
                                           ),
                                         );
                                       },
@@ -174,7 +199,7 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                                   child: Hero(
                                                     tag: label,
                                                     child: Image.asset(
-                                                      'assets/images/scada.png',
+                                                      image,
                                                       fit: BoxFit.fitWidth,
                                                     ),
                                                   ),
@@ -183,8 +208,12 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                               Text(
                                                 label,
                                                 textAlign: TextAlign.center,
-                                                style: const TextStyle(
-                                                    fontSize: 14),
+                                                style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: active
+                                                        ? Colors.black
+                                                        : Colors.red),
                                               ),
                                             ],
                                           ),
@@ -199,19 +228,27 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                     right: -16,
                                     child: PopupMenuButton<String>(
                                       padding: EdgeInsets.zero,
-                                      icon: const Icon(
-                                        Icons.more_vert,
-                                        size: 20,
-                                        color: Colors.black54,
-                                      ),
+                                      icon: const Icon(Icons.more_vert,
+                                          size: 20, color: Colors.black54),
                                       onSelected: (value) {
+                                        if (!active) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  '$label hiện chưa hoạt động.'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                          return;
+                                        }
                                         if (value == 'control') {
                                           Navigator.push(
                                             context,
                                             CupertinoPageRoute(
                                               builder: (_) =>
                                                   DeviceControlScreen(
-                                                      label: label),
+                                                      label: image),
                                             ),
                                           );
                                         } else if (value == 'maint') {
@@ -226,15 +263,15 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                       },
                                       itemBuilder: (_) => [
                                         const PopupMenuItem(
-                                            value: 'control',
-                                            child: Text('Cảnh báo',
-                                                style:
-                                                    TextStyle(fontSize: 15))),
+                                          value: 'control',
+                                          child: Text('Cảnh báo',
+                                              style: TextStyle(fontSize: 15)),
+                                        ),
                                         const PopupMenuItem(
-                                            value: 'maint',
-                                            child: Text('Bảo trì',
-                                                style:
-                                                    TextStyle(fontSize: 15))),
+                                          value: 'maint',
+                                          child: Text('Bảo trì',
+                                              style: TextStyle(fontSize: 15)),
+                                        ),
                                       ],
                                     ),
                                   ),

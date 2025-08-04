@@ -303,7 +303,7 @@ class _FeedReportScreenState extends State<FeedReportScreen> {
         child: SfCircularChart(
           title: ChartTitle(
               text:
-                  'Tỷ trọng thức ăn – $_filterPond (${_startDayFilter}–${_endDayFilter})',
+                  'Tỷ trọng thức ăn – $_filterPond ($_startDayFilter–$_endDayFilter)',
               textStyle: const TextStyle(fontWeight: FontWeight.bold)),
           legend: Legend(isVisible: true, position: LegendPosition.bottom),
           tooltipBehavior: TooltipBehavior(enable: true),

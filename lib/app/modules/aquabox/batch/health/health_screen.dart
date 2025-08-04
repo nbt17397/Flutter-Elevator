@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class HealthScreen extends StatefulWidget {
   const HealthScreen({super.key});
@@ -18,6 +21,8 @@ class _HealthScreenState extends State<HealthScreen> {
   int _healthRating = 0; // -2 … 2
   int _fecesRating = 0; // -2 … 2
   bool _auto = false; // cập nhật tự động?
+  File? _image; // ảnh mẫu nước
+  final _picker = ImagePicker();
 
   @override
   void dispose() {
@@ -44,6 +49,13 @@ class _HealthScreenState extends State<HealthScreen> {
         ),
       );
 
+  /* ---- Chọn ảnh ---- */
+  Future<void> _pickImage() async {
+    final XFile? xfile =
+        await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    if (xfile != null) setState(() => _image = File(xfile.path));
+  }
+  
   /* ----- Submit ----- */
   void _submit() {
     if (_formKey.currentState!.validate()) {
@@ -149,7 +161,34 @@ class _HealthScreenState extends State<HealthScreen> {
                       v == null || v.isEmpty ? 'Nhập chiều rộng' : null,
                 ),
                 const SizedBox(height: 24),
-      
+                /* --- Ảnh mẫu nước --- */
+                const Text('Hình ảnh',
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    height: 160,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black26),
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.grey.shade100,
+                      image: _image != null
+                          ? DecorationImage(
+                              image: FileImage(_image!), fit: BoxFit.cover)
+                          : null,
+                    ),
+                    alignment: Alignment.center,
+                    child: _image == null
+                        ? const Icon(Icons.add_a_photo,
+                            size: 40, color: Colors.black54)
+                        : null,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
                 /* --- Rating tình trạng sức khỏe --- */
                 _ratingBox(
                   title: 'Tình trạng sức khỏe',

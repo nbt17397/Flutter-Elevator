@@ -213,7 +213,7 @@ class _EnergyReportScreenState extends State<EnergyReportScreen> {
                 ),
                 series: [
                   SplineAreaSeries<FlowPoint, DateTime>(
-                      name: 'Tiêu thụ',
+                      name: 'Điện lưới',
                       dataSource: _points,
                       xValueMapper: (p, _) => p.time,
                       yValueMapper: (p, _) => p.consumption,
@@ -274,7 +274,7 @@ class _EnergyReportScreenState extends State<EnergyReportScreen> {
                       yValueMapper: (p, _) => p.solar,
                       color: Color(0xFFCCE609)),
                   StackedColumnSeries<StatPoint, String>(
-                      name: 'Tiêu thụ',
+                      name: 'Điện lưới',
                       dataSource: _statPoints,
                       xValueMapper: (p, _) => p.label,
                       yValueMapper: (p, _) => p.cons,

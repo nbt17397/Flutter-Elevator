@@ -144,9 +144,7 @@ class _AlertScreenState extends State<AlertScreen>
 
   void _showConfirmDialog(TaskAlert alert) {
     final isProcessed = alert.processed;
-    final msg = isProcessed
-        ? 'Bạn có muốn xác nhận hoàn thành?'
-        : 'Bạn có muốn xác nhận hoàn thành?';
+    final msg = 'Bạn có muốn xác nhận hoàn thành?';
 
     Alert(
       context: context,
@@ -155,15 +153,16 @@ class _AlertScreenState extends State<AlertScreen>
       desc: msg,
       buttons: [
         DialogButton(
-          child: const Text("Hủy", style: TextStyle(color: Colors.white)),
           onPressed: () => Navigator.pop(context),
           color: Colors.grey,
+          child: const Text("Trì hoãn", style: TextStyle(color: Colors.white)),
         ),
+        // DialogButton(
+        //   child: const Text("Xác nhận", style: TextStyle(color: Colors.white)),
+        //   onPressed: () => Navigator.pop(context),
+        //   color: Colors.green,
+        // ),
         DialogButton(
-          child: Text(
-            "Hoàn thành",
-            style: const TextStyle(color: Colors.white),
-          ),
           onPressed: () {
             setState(() {
               alert.processed = !alert.processed;
@@ -171,6 +170,10 @@ class _AlertScreenState extends State<AlertScreen>
             Navigator.pop(context);
           },
           color: Colors.blueAccent,
+          child: Text(
+            "Hoàn thành",
+            style: const TextStyle(color: Colors.white),
+          ),
         )
       ],
     ).show();

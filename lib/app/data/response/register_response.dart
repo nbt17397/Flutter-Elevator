@@ -34,6 +34,7 @@ class RegisterDB {
   int? value;
   String? type;
   bool? status;
+  String? topic;
 
   RegisterDB(
       {this.id,
@@ -44,7 +45,8 @@ class RegisterDB {
       this.description,
       this.value,
       this.type,
-      this.status});
+      this.status,
+      this.topic});
 
   RegisterDB.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -56,6 +58,7 @@ class RegisterDB {
     value = json['value'];
     type = json['type'];
     status = json['status'];
+    topic = json['topic'];
   }
 
   Map<String, dynamic> toJson() {
@@ -69,6 +72,7 @@ class RegisterDB {
     data['value'] = this.value;
     data['type'] = this.type;
     data['status'] = this.status;
+    data['topic'] = this.topic;
     return data;
   }
 }

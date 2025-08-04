@@ -129,7 +129,7 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
                           TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                   const Spacer(),
                   TextButton.icon(
-                    onPressed: () {}, // TODO: thêm bể
+                    onPressed: () {},
                     style: TextButton.styleFrom(
                       backgroundColor: CustomColors.appbarColor,
                       foregroundColor: Colors.white,

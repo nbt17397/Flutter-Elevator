@@ -17,7 +17,7 @@ class MqttService {
     client = MqttServerClient(broker, clientId);
     client!.port = port;
     client!.logging(on: true);
-    client!.secure = true;
+    client!.secure = false;
     client!.useWebSocket = false;
     client!.keepAlivePeriod = 60;
 

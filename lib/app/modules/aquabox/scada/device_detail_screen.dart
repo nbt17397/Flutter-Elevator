@@ -252,7 +252,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
     required ValueChanged<bool> onToggle,
     required String unit,
     required double min,
-    required double max,
+    required double max
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),

@@ -76,6 +76,20 @@ class LocationDB {
   }
 }
 
+class GroupDB {
+  int? id;
+  String? name;
+  String? description;
+
+  GroupDB({this.id, this.name, this.description});
+
+  GroupDB.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    description = json['description'];
+  }
+}
+
 class BoardDB {
   int? id;
   String? name;
@@ -87,6 +101,7 @@ class BoardDB {
   bool? status;
   int? location;
   List<int>? authorizedUsers;
+  List<GroupDB>? groups;
   double? capacity;
 
   BoardDB(
@@ -99,7 +114,7 @@ class BoardDB {
       this.description,
       this.status,
       this.location,
-      this.authorizedUsers,
+      this.authorizedUsers,this.groups,
       this.capacity});
 
   BoardDB.fromJson(Map<String, dynamic> json) {
@@ -113,6 +128,12 @@ class BoardDB {
     status = json['status'];
     location = json['location'];
     authorizedUsers = json['authorized_users'].cast<int>();
+    if (json['groups'] != null) {
+      groups = <GroupDB>[];
+      json['groups'].forEach((v) {
+        groups!.add(new GroupDB.fromJson(v));
+      });
+    }
     capacity = json['capacity'];
   }
 
