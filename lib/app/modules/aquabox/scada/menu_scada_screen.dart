@@ -45,7 +45,7 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
       {
         'label': 'Demo thủy sản',
         'active': true,
-        'image': 'assets/images/scada.png'
+        'image': 'assets/images/demo.png'
       },
       {
         'label': 'Bể nuôi 1',
@@ -147,7 +147,7 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                             crossAxisCount: crossCount,
                             mainAxisSpacing: 12,
                             crossAxisSpacing: 12,
-                            childAspectRatio: 1.3,
+                            childAspectRatio: 1.4,
                             children: items.map((item) {
                               final label = item['label'] as String;
                               final active = item['active'] as bool;
@@ -195,12 +195,12 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                               Expanded(
                                                 child: Padding(
                                                   padding:
-                                                      const EdgeInsets.all(8.0),
+                                                      const EdgeInsets.fromLTRB(8,8,8,0),
                                                   child: Hero(
                                                     tag: label,
                                                     child: Image.asset(
                                                       image,
-                                                      fit: BoxFit.fitWidth,
+                                                      fit: BoxFit.fitHeight,
                                                     ),
                                                   ),
                                                 ),

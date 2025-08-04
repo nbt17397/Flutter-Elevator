@@ -63,7 +63,7 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
                   background: Hero(
                     tag: widget.label,
                     transitionOnUserGestures: true,
-                    child: Image.asset(widget.label, fit: BoxFit.cover),
+                    child: Image.asset(widget.label, fit: BoxFit.fitHeight),
                   ),
                 ),
               ),

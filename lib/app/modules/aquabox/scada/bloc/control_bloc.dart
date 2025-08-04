@@ -19,7 +19,13 @@ class ControlBloc extends Bloc<ControlEvent, ControlState> {
           if (results.isEmpty) {
             emit(GetRegisterEmpty());
           } else {
-            emit(GetRegisterLoaded(results));
+            // Đưa AUTO_MODE và MAN_MODE lên đầu danh sách
+            const priority = ['AUTO_MODE', 'MAN_MODE'];
+            final prioritized = results.where((e) => priority.contains(e.name)).toList();
+            final others = results.where((e) => !priority.contains(e.name)).toList();
+            final sortedResults = [...prioritized, ...others];
+
+            emit(GetRegisterLoaded(sortedResults));
           }
         } catch (e) {
           emit(GetRegisterError(e.toString()));
