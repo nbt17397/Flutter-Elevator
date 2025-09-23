@@ -7,17 +7,12 @@ import '../base_client.dart';
 class BoardRepo extends ApiProvider {
   Future<RegisterResponse> getRegisterByBoardID({required int id}) async {
     try {
-      Response _resp = await httpClient.get(
-        'https://api-elevator.haophuong.com/boards/$id/registers/',
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        ),
+      Response resp = await httpClient.get(
+        '$id/registers/',
       );
 
-      if (_resp.statusCode == 200) {
-        return RegisterResponse.fromJson(_resp.data);
+      if (resp.statusCode == 200) {
+        return RegisterResponse.fromJson(resp.data);
       } else {
         throw Exception('An unknown error occurred');
       }
@@ -29,7 +24,7 @@ class BoardRepo extends ApiProvider {
   Future<RequestControlResponse> getRequestControlByBoardID(
       {required int id}) async {
     try {
-      Response _resp = await httpClient.get(
+      Response resp = await httpClient.get(
         'https://api-elevator.haophuong.com/boards/$id/control_requests/',
         options: Options(
           headers: {
@@ -38,8 +33,8 @@ class BoardRepo extends ApiProvider {
         ),
       );
 
-      if (_resp.statusCode == 200) {
-        return RequestControlResponse.fromJson(_resp.data);
+      if (resp.statusCode == 200) {
+        return RequestControlResponse.fromJson(resp.data);
       } else {
         throw Exception('An unknown error occurred');
       }
@@ -84,17 +79,12 @@ class BoardRepo extends ApiProvider {
 
   Future<RegisterResponse> getRegisterByGroupID({required int id}) async {
     try {
-      Response _resp = await httpClient.get(
-        'https://api-elevator.haophuong.com/groups/$id/registers/',
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        ),
+      Response resp = await httpClient.get(
+        'groups/$id/registers/',
       );
 
-      if (_resp.statusCode == 200) {
-        return RegisterResponse.fromJson(_resp.data);
+      if (resp.statusCode == 200) {
+        return RegisterResponse.fromJson(resp.data);
       } else {
         throw Exception('An unknown error occurred');
       }

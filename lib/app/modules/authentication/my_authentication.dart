@@ -67,7 +67,7 @@ class _MyAuthenticationState extends State<MyAuthentication> {
       rebuildFactor: (old, data) => true,
       builder: (context, widget) {
         return GetMaterialApp(
-          title: "SmartFarm",
+          title: "LASI",
           useInheritedMediaQuery: true,
           debugShowCheckedModeBanner: false,
           builder: (context, widget) {

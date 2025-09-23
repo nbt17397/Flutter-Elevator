@@ -23,14 +23,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  LocationDB? _selectedMarkerInfo;
+  int? _selectedLocationId; // lưu id thay vì instance để tránh mismatch
   late LocationBloc locationBloc;
   late bool isSuperuser;
 
   @override
   void initState() {
     super.initState();
-
     locationBloc = LocationBloc()..add(GetLocationByUser());
 
     // Lấy user từ Hive
@@ -46,7 +45,16 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.transparent,
         body: BlocListener<LocationBloc, LocationState>(
           bloc: locationBloc,
-          listener: (context, state) {},
+          // Dùng listener để gán giá trị mặc định 1 lần khi data load
+          listener: (context, state) {
+            if (state is GetLocationLoaded &&
+                _selectedLocationId == null &&
+                state.locations.isNotEmpty) {
+              setState(() {
+                _selectedLocationId = state.locations.first.id;
+              });
+            }
+          },
           child: BlocBuilder<LocationBloc, LocationState>(
             bloc: locationBloc,
             builder: (context, state) {
@@ -57,9 +65,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 return Center(child: Text("Error: ${state.error}"));
               }
               if (state is GetLocationLoaded) {
-                _selectedMarkerInfo = state.locations[0];
-                return _buildMarkerInfoCard(
-                    _selectedMarkerInfo!, state.locations);
+                // đảm bảo luôn có selected location hợp lệ
+                final locations = state.locations;
+                final selected = locations.firstWhere(
+                  (l) => l.id == _selectedLocationId,
+                  orElse: () => locations.first,
+                );
+                // cập nhật _selectedLocationId nếu trước đó null (trường hợp listener không chạy)
+                if (_selectedLocationId == null && mounted) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    setState(() {
+                      _selectedLocationId = selected.id;
+                    });
+                  });
+                }
+                return _buildMarkerInfoCard(selected, locations);
               }
               return const Center(child: Text("No Data Available"));
             },
@@ -69,7 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMarkerInfoCard(LocationDB location, List<LocationDB> locations) {
+  Widget _buildMarkerInfoCard(
+      LocationDB selectedLocation, List<LocationDB> locations) {
     return Container(
       padding: const EdgeInsets.only(top: 30, left: 12, right: 12),
       child: Column(
@@ -84,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const Divider(thickness: .4, color: Colors.black12),
-          Expanded(child: _buildMenuGrid()),
+          Expanded(child: _buildMenuGrid(selectedLocation.id!)),
         ],
       ),
     );
@@ -92,6 +113,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildDropdown(List<LocationDB> locations) {
     Size size = MediaQuery.of(context).size;
+
+    // Lấy object tương ứng với id đã chọn, fallback về first
+    final LocationDB currentValue = locations.firstWhere(
+      (loc) => loc.id == _selectedLocationId,
+      orElse: () => locations.first,
+    );
 
     return Container(
       height: size.width * .16,
@@ -108,13 +135,16 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: DropdownButton<LocationDB>(
         isExpanded: true,
-        value: _selectedMarkerInfo ?? locations.first,
+        value: currentValue,
         dropdownColor: Colors.white,
         underline: const SizedBox(),
         iconEnabledColor: Colors.white,
         onChanged: (LocationDB? newValue) {
           if (newValue != null) {
-            setState(() => _selectedMarkerInfo = newValue);
+            setState(() => _selectedLocationId = newValue.id);
+            // Nếu bạn muốn load dữ liệu theo location mới,
+            // thêm event tương ứng ở đây (nếu bloc hỗ trợ).
+            // example: locationBloc.add(GetLocationDetail(newValue.id));
           }
         },
         items: locations.map((location) {
@@ -152,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMenuGrid() {
+  Widget _buildMenuGrid(int locationId) {
     final allMenus = [
       MenuItem(
         title: 'Vụ nuôi',
@@ -175,8 +205,8 @@ class _HomeScreenState extends State<HomeScreen> {
       MenuItem(
         title: 'Cảnh báo',
         asset: 'assets/images/alarm.png',
-        onTap: () =>
-            Navigator.push(context, CupertinoPageRoute(builder: (_) => AlertScreen())),
+        onTap: () => Navigator.push(
+            context, CupertinoPageRoute(builder: (_) => AlertScreen())),
       ),
       MenuItem(
         title: 'Thiết bị',
@@ -193,8 +223,20 @@ class _HomeScreenState extends State<HomeScreen> {
       MenuItem(
         title: 'Cài đặt',
         asset: 'assets/images/setting.png',
-        onTap: () => Navigator.push(context,
-            CupertinoPageRoute(builder: (_) => FarmSettingsMenuScreen())),
+        onTap: () => Navigator.push(
+            context,
+            CupertinoPageRoute(
+                builder: (_) =>
+                    FarmSettingsMenuScreen(locationId: locationId))),
+      ),
+      MenuItem(
+        title: 'Hướng dẫn',
+        asset: 'assets/images/tutorial.png',
+        onTap: () => Navigator.push(
+            context,
+            CupertinoPageRoute(
+                builder: (_) =>
+                    FarmSettingsMenuScreen(locationId: locationId))),
       ),
     ];
 
@@ -236,8 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(
-                    child: Image.asset(item.asset, fit: BoxFit.contain)),
+                Expanded(child: Image.asset(item.asset, fit: BoxFit.contain)),
                 const SizedBox(height: 6),
                 Text(item.title,
                     textAlign: TextAlign.center,

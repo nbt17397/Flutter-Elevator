@@ -11,13 +11,9 @@ class GetLocationEmpty extends LocationState {}
 
 class GetLocationLoaded extends LocationState {
   final List<LocationDB> locations;
-  final double currentLatitude;
-  final double currentLongitude;
 
   GetLocationLoaded({
-    required this.locations,
-    required this.currentLatitude,
-    required this.currentLongitude,
+    required this.locations
   });
 }
 

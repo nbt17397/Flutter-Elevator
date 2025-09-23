@@ -73,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        'AMVi',
+                        'LASI',
                         style: TextStyle(
                           fontSize: 30.0,
                           fontWeight: FontWeight.w900,

@@ -8,8 +8,7 @@ class HistoricalDataRepo extends ApiProvider {
       {required int id}) async {
     try {
       Response _resp = await httpClient.get(
-        'https://api-elevator.haophuong.com/registers/$id/historical-data/all/',
-        options: Options(headers: {'Content-Type': 'application/json'}),
+        'registers/$id/historical-data/all/',
       );
 
       if (_resp.statusCode == 200) {

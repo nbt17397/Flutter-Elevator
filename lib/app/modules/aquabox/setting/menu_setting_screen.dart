@@ -1,7 +1,8 @@
 import 'package:elevator/app/components/app_background.dart';
-import 'package:elevator/app/modules/aquabox/setting/area/area_screen.dart';
+import 'package:elevator/app/modules/aquabox/setting/animal_type/animal_type_screen.dart';
+import 'package:elevator/app/modules/aquabox/setting/system/system_screen.dart';
 import 'package:elevator/app/modules/aquabox/setting/formula/formula_screen.dart';
-import 'package:elevator/app/modules/aquabox/setting/manager/employee_screen.dart';
+import 'package:elevator/app/modules/aquabox/setting/manager/user_management_screen.dart';
 import 'package:elevator/app/modules/aquabox/setting/unit/unit_screen.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/cupertino.dart';
@@ -20,7 +21,8 @@ class _MenuItem {
 
 /// Màn hình MENU CÀI ĐẶT TRANG TRẠI
 class FarmSettingsMenuScreen extends StatelessWidget {
-  const FarmSettingsMenuScreen({super.key});
+  final int locationId;
+  const FarmSettingsMenuScreen({super.key, required this.locationId});
 
   @override
   Widget build(BuildContext context) {
@@ -46,19 +48,19 @@ class FarmSettingsMenuScreen extends StatelessWidget {
         'Khu vực',
         Icons.area_chart_sharp,
         () => Navigator.push(
-            context, CupertinoPageRoute(builder: (_) => AreaScreen())),
+            context, CupertinoPageRoute(builder: (_) => SystemScreen())),
       ),
       _MenuItem(
         'Quản lý',
         Icons.person_3_outlined,
         () => Navigator.push(
-            context, CupertinoPageRoute(builder: (_) => EmployeeScreen())),
+            context, CupertinoPageRoute(builder: (_) => UserManagementScreen(locationId: locationId))),
       ),
       _MenuItem(
         'Vật nuôi',
         Icons.feed,
         () => Navigator.push(
-            context, CupertinoPageRoute(builder: (_) => UnitScreen())),
+            context, CupertinoPageRoute(builder: (_) => AnimalTypeScreen())),
       ),
       _MenuItem(
         'Đơn vị',
