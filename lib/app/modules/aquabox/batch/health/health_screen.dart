@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class HealthScreen extends StatefulWidget {
-  const HealthScreen({super.key});
+  final bool isAquatic;
+  const HealthScreen({super.key, required this.isAquatic});
 
   @override
   State<HealthScreen> createState() => _HealthScreenState();
@@ -18,6 +19,8 @@ class _HealthScreenState extends State<HealthScreen> {
   /* ----- Controllers & State ----- */
   final _lengthCtl = TextEditingController();
   final _widthCtl = TextEditingController();
+  // Thêm controller cho cân nặng
+  final _weightCtl = TextEditingController();
   int _healthRating = 0; // -2 … 2
   int _fecesRating = 0; // -2 … 2
   bool _auto = false; // cập nhật tự động?
@@ -28,6 +31,7 @@ class _HealthScreenState extends State<HealthScreen> {
   void dispose() {
     _lengthCtl.dispose();
     _widthCtl.dispose();
+    _weightCtl.dispose(); // Dispose controller mới
     super.dispose();
   }
 
@@ -62,7 +66,14 @@ class _HealthScreenState extends State<HealthScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Đã lưu dữ liệu sức khỏe!')),
       );
-      // TODO: gửi (_lengthCtl.text, _widthCtl.text, _healthRating, _fecesRating) lên backend
+      // TODO: gửi dữ liệu lên backend
+      // Dữ liệu cần gửi:
+      // - Chiều dài: _lengthCtl.text
+      // - Chiều rộng: _widthCtl.text
+      // - Cân nặng (nếu là động vật): _weightCtl.text
+      // - Rating sức khỏe: _healthRating
+      // - Rating phân: _fecesRating
+      // - Ảnh (nếu có): _image
     }
   }
 
@@ -160,6 +171,16 @@ class _HealthScreenState extends State<HealthScreen> {
                   validator: (v) =>
                       v == null || v.isEmpty ? 'Nhập chiều rộng' : null,
                 ),
+                // Hiển thị ô cân nặng nếu là động vật
+                if (!widget.isAquatic) ...[
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _weightCtl,
+                    decoration: _dec('Cân nặng (kg)'),
+                    keyboardType: TextInputType.number,
+                    validator: (v) => v == null || v.isEmpty ? 'Nhập cân nặng' : null,
+                  ),
+                ],
                 const SizedBox(height: 24),
                 /* --- Ảnh mẫu nước --- */
                 const Text('Hình ảnh',

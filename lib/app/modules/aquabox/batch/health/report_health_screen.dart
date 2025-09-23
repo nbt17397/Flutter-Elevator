@@ -8,55 +8,64 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 /* ---------- Model ---------- */
 class HealthPoint {
   final int day;
-  final double lengthCm, widthCm;
+  final double lengthCm, widthCm, weightKg;
   final int healthRating, fecesRating;
   const HealthPoint(
-      this.day, this.lengthCm, this.widthCm, this.healthRating, this.fecesRating);
+      this.day, this.lengthCm, this.widthCm, this.weightKg, this.healthRating, this.fecesRating);
 }
 
 /* ---------- Screen ---------- */
 class HealthReportScreen extends StatefulWidget {
-  const HealthReportScreen({super.key});
+  final bool isAquatic;
+  const HealthReportScreen({super.key, required this.isAquatic});
   @override
   State<HealthReportScreen> createState() => _HealthReportScreenState();
 }
 
 class _HealthReportScreenState extends State<HealthReportScreen> {
+  // Dữ liệu giả định cho các thực thể
   final List<String> _ponds = ['P1', 'P2', 'P3', 'P4'];
-  late final Map<String, List<HealthPoint>> _pondData;
+  final List<String> _cages = ['C1', 'C2', 'C3'];
+  late final Map<String, List<HealthPoint>> _entityData;
+  late final List<String> _currentEntities;
 
   /* --- Bộ lọc --- */
-  String _filterPond = 'P1';
-  int    _startDay   = 1;
-  int    _endDay     = 10;
+  late String _filterEntity;
+  int _startDay = 1;
+  int _endDay = 10;
 
   @override
   void initState() {
     super.initState();
-    _pondData = {for (var p in _ponds) p: _fakeData(p)};
+    // Chọn danh sách thực thể dựa trên isAquatic
+    _currentEntities = widget.isAquatic ? _ponds : _cages;
+    _filterEntity = _currentEntities.first;
+    _entityData = {for (var e in _currentEntities) e: _fakeData(e)};
   }
 
-  /* ---- Fake data ---- */
-  List<HealthPoint> _fakeData(String pond) {
-    final rnd = Random(pond.hashCode);
-    final off = _ponds.indexOf(pond) * .5;
+  /* ---- Fake data (đã thêm cân nặng) ---- */
+  List<HealthPoint> _fakeData(String entity) {
+    final rnd = Random(entity.hashCode);
+    final off = _currentEntities.indexOf(entity) * .5;
     double len = 5 + off;
     double wid = 1.5 + off * .5;
+    double weight = 20 + off * 10;
     int hRate = rnd.nextInt(5) - 2;
     int fRate = rnd.nextInt(5) - 2;
     return List.generate(10, (i) {
       if (i > 0) {
         len += rnd.nextDouble() * .4;
         wid += rnd.nextDouble() * .2;
+        weight += rnd.nextDouble() * 2;
         hRate = (hRate + rnd.nextInt(3) - 1).clamp(-2, 2);
         fRate = (fRate + rnd.nextInt(3) - 1).clamp(-2, 2);
       }
-      return HealthPoint(i + 1, len, wid, hRate, fRate);
+      return HealthPoint(i + 1, len, wid, weight, hRate, fRate);
     });
   }
 
   /* ---- Data sau lọc ---- */
-  List<HealthPoint> get _dataFiltered => _pondData[_filterPond]!
+  List<HealthPoint> get _dataFiltered => _entityData[_filterEntity]!
       .where((d) => d.day >= _startDay && d.day <= _endDay)
       .toList();
 
@@ -64,7 +73,7 @@ class _HealthReportScreenState extends State<HealthReportScreen> {
   void _showFilterDialog() {
     double sDay = _startDay.toDouble();
     double eDay = _endDay.toDouble();
-    String pondSel = _filterPond;
+    String entitySel = _filterEntity;
 
     Alert(
       context: context,
@@ -96,9 +105,9 @@ class _HealthReportScreenState extends State<HealthReportScreen> {
             ),
             const SizedBox(height: 16),
 
-            /* ---- Bể ---- */
-            const Text('Chọn bể',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            /* ---- Dropdown chọn thực thể ---- */
+            Text(widget.isAquatic ? 'Chọn bể' : 'Chọn chuồng',
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
             const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -109,11 +118,11 @@ class _HealthReportScreenState extends State<HealthReportScreen> {
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   isExpanded: true,
-                  value: pondSel,
-                  items: _ponds
+                  value: entitySel,
+                  items: _currentEntities
                       .map((p) => DropdownMenuItem(value: p, child: Text(p)))
                       .toList(),
-                  onChanged: (v) => setStateDialog(() => pondSel = v!),
+                  onChanged: (v) => setStateDialog(() => entitySel = v!),
                 ),
               ),
             ),
@@ -134,20 +143,21 @@ class _HealthReportScreenState extends State<HealthReportScreen> {
                 max: 10,
                 divisions: 9,
                 values: RangeValues(sDay, eDay),
-                labels:
-                    RangeLabels(sDay.round().toString(), eDay.round().toString()),
+                labels: RangeLabels(
+                    sDay.round().toString(), eDay.round().toString()),
                 activeColor: CustomColors.appbarColor,
                 inactiveColor: CustomColors.appbarColor.withOpacity(0.2),
                 onChanged: (v) => setStateDialog(() {
-                  sDay = v.start; eDay = v.end;
+                  sDay = v.start;
+                  eDay = v.end;
                 }),
               ),
             ),
             const SizedBox(height: 4),
             Center(
               child: Text('Từ ngày ${sDay.round()} đến ${eDay.round()}',
-                  style:
-                      const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 14)),
             ),
           ],
         ),
@@ -155,19 +165,17 @@ class _HealthReportScreenState extends State<HealthReportScreen> {
       buttons: [
         DialogButton(
           color: Colors.grey.shade400,
-          child: const Text("HỦY",
-              style: TextStyle(color: Colors.white, fontSize: 16)),
+          child: const Text("HỦY", style: TextStyle(color: Colors.white, fontSize: 16)),
           onPressed: () => Navigator.pop(context),
         ),
         DialogButton(
           color: CustomColors.appbarColor,
-          child: const Text("ÁP DỤNG",
-              style: TextStyle(color: Colors.white, fontSize: 16)),
+          child: const Text("ÁP DỤNG", style: TextStyle(color: Colors.white, fontSize: 16)),
           onPressed: () {
             setState(() {
-              _filterPond = pondSel;
-              _startDay   = sDay.round();
-              _endDay     = eDay.round();
+              _filterEntity = entitySel;
+              _startDay = sDay.round();
+              _endDay = eDay.round();
             });
             Navigator.pop(context);
           },
@@ -176,7 +184,7 @@ class _HealthReportScreenState extends State<HealthReportScreen> {
     ).show();
   }
 
-  /* ---------- UI ---------- */
+  /* ---------- UI chính ---------- */
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
@@ -214,80 +222,96 @@ class _HealthReportScreenState extends State<HealthReportScreen> {
   }
 
   /* --- Chart kích thước --- */
-  Widget _buildSizeChart(double height) => Container(
-        height: height,
-        padding: const EdgeInsets.all(8),
-        decoration: _box,
-        child: SfCartesianChart(
-          title: ChartTitle(
-              text: 'Kích thước (cm) – $_filterPond',
-              textStyle: const TextStyle(fontWeight: FontWeight.bold)),
-          legend: Legend(isVisible: true, position: LegendPosition.bottom),
-          tooltipBehavior: TooltipBehavior(enable: true),
-          primaryXAxis: NumericAxis(
-              minimum: _startDay.toDouble(),
-              maximum: _endDay.toDouble(),
-              interval: 1),
-          series: [
-            LineSeries<HealthPoint, int>(
-              name: 'Chiều dài',
-              dataSource: _dataFiltered,
-              xValueMapper: (d, _) => d.day,
-              yValueMapper: (d, _) => d.lengthCm,
-              markerSettings: const MarkerSettings(isVisible: true),
-              color: Colors.blue.shade700,
-            ),
-            LineSeries<HealthPoint, int>(
-              name: 'Chiều rộng',
-              dataSource: _dataFiltered,
-              xValueMapper: (d, _) => d.day,
-              yValueMapper: (d, _) => d.widthCm,
-              markerSettings: const MarkerSettings(isVisible: true),
-              color: Colors.orange.shade600,
-            ),
-          ],
+  Widget _buildSizeChart(double height) {
+    final List<LineSeries<HealthPoint, int>> seriesList = [
+      LineSeries<HealthPoint, int>(
+        name: 'Chiều dài',
+        dataSource: _dataFiltered,
+        xValueMapper: (d, _) => d.day,
+        yValueMapper: (d, _) => d.lengthCm,
+        markerSettings: const MarkerSettings(isVisible: true),
+        color: Colors.blue.shade700,
+      ),
+      LineSeries<HealthPoint, int>(
+        name: 'Chiều rộng',
+        dataSource: _dataFiltered,
+        xValueMapper: (d, _) => d.day,
+        yValueMapper: (d, _) => d.widthCm,
+        markerSettings: const MarkerSettings(isVisible: true),
+        color: Colors.orange.shade600,
+      ),
+    ];
+    // Thêm series cân nặng nếu không phải thủy sản
+    if (!widget.isAquatic) {
+      seriesList.add(
+        LineSeries<HealthPoint, int>(
+          name: 'Cân nặng',
+          dataSource: _dataFiltered,
+          xValueMapper: (d, _) => d.day,
+          yValueMapper: (d, _) => d.weightKg,
+          markerSettings: const MarkerSettings(isVisible: true),
+          color: Colors.green.shade700,
         ),
       );
+    }
+    return Container(
+      height: height,
+      padding: const EdgeInsets.all(8),
+      decoration: _box,
+      child: SfCartesianChart(
+        title: ChartTitle(
+            text: 'Kích thước & Cân nặng (cm/kg) – $_filterEntity',
+            textStyle: const TextStyle(fontWeight: FontWeight.bold)),
+        legend: Legend(isVisible: true, position: LegendPosition.bottom),
+        tooltipBehavior: TooltipBehavior(enable: true),
+        primaryXAxis: NumericAxis(
+            minimum: _startDay.toDouble(),
+            maximum: _endDay.toDouble(),
+            interval: 1),
+        series: seriesList,
+      ),
+    );
+  }
 
   /* --- Chart rating --- */
   Widget _buildRatingChart(double height) => Container(
-        height: height,
-        padding: const EdgeInsets.all(8),
-        decoration: _box,
-        child: SfCartesianChart(
-          title: ChartTitle(
-              text: 'Điểm sức khoẻ – $_filterPond',
-              textStyle: const TextStyle(fontWeight: FontWeight.bold)),
-          legend: Legend(isVisible: true, position: LegendPosition.bottom),
-          tooltipBehavior: TooltipBehavior(enable: true),
-          primaryXAxis: NumericAxis(
-              minimum: _startDay.toDouble(),
-              maximum: _endDay.toDouble(),
-              interval: 1),
-          primaryYAxis: NumericAxis(minimum: -2, maximum: 2, interval: 1),
-          series: [
-            LineSeries<HealthPoint, int>(
-              name: 'Tình trạng sức khoẻ',
-              dataSource: _dataFiltered,
-              xValueMapper: (d, _) => d.day,
-              yValueMapper: (d, _) => d.healthRating,
-              markerSettings: const MarkerSettings(isVisible: true),
-              color: Colors.green.shade700,
-            ),
-            LineSeries<HealthPoint, int>(
-              name: 'Tình trạng phân',
-              dataSource: _dataFiltered,
-              xValueMapper: (d, _) => d.day,
-              yValueMapper: (d, _) => d.fecesRating,
-              markerSettings: const MarkerSettings(isVisible: true),
-              color: Colors.purple.shade600,
-            ),
-          ],
-        ),
-      );
+      height: height,
+      padding: const EdgeInsets.all(8),
+      decoration: _box,
+      child: SfCartesianChart(
+        title: ChartTitle(
+            text: 'Điểm sức khoẻ – $_filterEntity',
+            textStyle: const TextStyle(fontWeight: FontWeight.bold)),
+        legend: Legend(isVisible: true, position: LegendPosition.bottom),
+        tooltipBehavior: TooltipBehavior(enable: true),
+        primaryXAxis: NumericAxis(
+            minimum: _startDay.toDouble(),
+            maximum: _endDay.toDouble(),
+            interval: 1),
+        primaryYAxis: NumericAxis(minimum: -2, maximum: 2, interval: 1),
+        series: [
+          LineSeries<HealthPoint, int>(
+            name: 'Tình trạng sức khoẻ',
+            dataSource: _dataFiltered,
+            xValueMapper: (d, _) => d.day,
+            yValueMapper: (d, _) => d.healthRating,
+            markerSettings: const MarkerSettings(isVisible: true),
+            color: Colors.green.shade700,
+          ),
+          LineSeries<HealthPoint, int>(
+            name: 'Tình trạng phân',
+            dataSource: _dataFiltered,
+            xValueMapper: (d, _) => d.day,
+            yValueMapper: (d, _) => d.fecesRating,
+            markerSettings: const MarkerSettings(isVisible: true),
+            color: Colors.purple.shade600,
+          ),
+        ],
+      ),
+    );
 
   BoxDecoration get _box => BoxDecoration(
-        border: Border.all(color: Colors.black),
-        borderRadius: BorderRadius.circular(8),
-      );
+      border: Border.all(color: Colors.black),
+      borderRadius: BorderRadius.circular(8),
+    );
 }

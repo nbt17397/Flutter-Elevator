@@ -12,7 +12,8 @@ class Pond {
 
 /* ---- Screen ---- */
 class DensityScreen extends StatefulWidget {
-  const DensityScreen({super.key});
+  final bool isAquatic;
+  const DensityScreen({super.key, required this.isAquatic});
 
   @override
   State<DensityScreen> createState() => _DensityScreenState();
@@ -32,7 +33,7 @@ class _DensityScreenState extends State<DensityScreen> {
   @override
   void initState() {
     super.initState();
-    _ponds = List.generate(4, (i) => Pond('P${i + 1}', 'Bể nuôi ${i + 1}'));
+    _ponds = List.generate(4, (i) => Pond('P${i + 1}', widget.isAquatic ?'Bể nuôi ${i + 1}':'Chuồng nuôi ${i + 1}'));
   }
 
   @override
@@ -115,7 +116,7 @@ class _DensityScreenState extends State<DensityScreen> {
 
                 /* --- POND DROPDOWN --- */
                 DropdownButtonFormField<Pond>(
-                  decoration: _dec('Chọn bể nuôi'),
+                  decoration: _dec(widget.isAquatic ?'Chọn bể nuôi' :'Chọn chuồng nuôi'),
                   items: _ponds
                       .map((p) => DropdownMenuItem(
                             value: p,

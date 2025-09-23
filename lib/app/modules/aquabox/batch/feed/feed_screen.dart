@@ -13,7 +13,8 @@ class FeedRecord {
 
 /* ---- Screen ---- */
 class FeedScreen extends StatefulWidget {
-  const FeedScreen({super.key});
+  final bool isAquatic;
+  const FeedScreen({super.key, required this.isAquatic});
 
   @override
   State<FeedScreen> createState() => _FeedScreenState();

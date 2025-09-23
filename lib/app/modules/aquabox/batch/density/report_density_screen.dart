@@ -14,17 +14,21 @@ class DensityPoint {
 
 /* --------------- Screen ------------------ */
 class ReportDensityScreen extends StatefulWidget {
-  const ReportDensityScreen({super.key});
+  final bool isAquatic; // Thêm tham số type
+  const ReportDensityScreen({super.key, required this.isAquatic});
 
   @override
   State<ReportDensityScreen> createState() => _ReportDensityScreenState();
 }
 
 class _ReportDensityScreenState extends State<ReportDensityScreen> {
+  // Dữ liệu giả định cho các thực thể
   final List<String> _ponds = ['P1', 'P2', 'P3', 'P4'];
+  final List<String> _cages = ['C1', 'C2', 'C3'];
 
-  late final Map<String, List<DensityPoint>> _pondData;
-  late Set<String> _selectedPonds;
+  late final Map<String, List<DensityPoint>> _entityData;
+  late Set<String> _selectedEntities;
+  late List<String> _currentEntities;
 
   int _startDayFilter = 1;
   int _endDayFilter = 10;
@@ -32,14 +36,16 @@ class _ReportDensityScreenState extends State<ReportDensityScreen> {
   @override
   void initState() {
     super.initState();
-    _pondData = {for (var p in _ponds) p: _fakeData(p)};
-    _selectedPonds = _ponds.toSet();
+    // Chọn danh sách thực thể dựa trên type
+    _currentEntities = widget.isAquatic ? _ponds : _cages;
+    _entityData = {for (var e in _currentEntities) e: _fakeData(e)};
+    _selectedEntities = _currentEntities.toSet();
   }
 
   /* ------------ Fake data ------------- */
-  List<DensityPoint> _fakeData(String pond) {
-    final rnd = Random(pond.hashCode);
-    int offset = _ponds.indexOf(pond) * 120;
+  List<DensityPoint> _fakeData(String entity) {
+    final rnd = Random(entity.hashCode);
+    int offset = _currentEntities.indexOf(entity) * 120;
     int current = 950 + offset + rnd.nextInt(50);
     return List.generate(10, (i) {
       if (i > 0) current -= 40 + rnd.nextInt(60);
@@ -99,7 +105,7 @@ class _ReportDensityScreenState extends State<ReportDensityScreen> {
             ),
             Text(
               'Từ ngày ${start.round()} đến ngày ${end.round()}',
-              style: const TextStyle(fontWeight: FontWeight.w600,fontSize: 14),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
           ],
         ),
@@ -129,8 +135,8 @@ class _ReportDensityScreenState extends State<ReportDensityScreen> {
 
   /* -------------- Bảng tóm tắt -------------- */
   DataTable _buildSummary() {
-    final rows = _selectedPonds.map((p) {
-      final data = _pondData[p]!
+    final rows = _selectedEntities.map((p) {
+      final data = _entityData[p]!
           .where((d) => d.day >= _startDayFilter && d.day <= _endDayFilter)
           .toList();
       final start = data.first.qty;
@@ -148,14 +154,17 @@ class _ReportDensityScreenState extends State<ReportDensityScreen> {
       headingRowColor: WidgetStateProperty.resolveWith((_) => Colors.black),
       dataRowColor: WidgetStateProperty.resolveWith((_) => Colors.white),
       columnSpacing: 24,
-      columns: const [
+      columns: [
         DataColumn(
-            label: Text('Bể nuôi', style: TextStyle(color: Colors.white))),
-        DataColumn(
+            label: Text(
+          widget.isAquatic ? 'Bể nuôi' : 'Chuồng',
+          style: const TextStyle(color: Colors.white),
+        )),
+        const DataColumn(
             label: Text('Ngày đầu', style: TextStyle(color: Colors.white))),
-        DataColumn(
+        const DataColumn(
             label: Text('Ngày cuối', style: TextStyle(color: Colors.white))),
-        DataColumn(
+        const DataColumn(
             label: Text('SL giảm', style: TextStyle(color: Colors.white))),
       ],
       rows: rows,
@@ -172,7 +181,7 @@ class _ReportDensityScreenState extends State<ReportDensityScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('Báo cáo mật độ nuôi'),
+          title: Text('Báo cáo mật độ nuôi'),
           centerTitle: true,
           backgroundColor: CustomColors.appbarColor,
           actions: [
@@ -210,16 +219,16 @@ class _ReportDensityScreenState extends State<ReportDensityScreen> {
                       minimum: _startDayFilter.toDouble(),
                       maximum: _endDayFilter.toDouble(),
                     ),
-                    series: _selectedPonds.map((pond) {
-                      final baseColor =
-                          Colors.primaries[_ponds.indexOf(pond) * 2];
-                      final filtered = _pondData[pond]!
+                    series: _selectedEntities.map((entity) {
+                      final baseColor = Colors
+                          .primaries[_currentEntities.indexOf(entity) * 2];
+                      final filtered = _entityData[entity]!
                           .where((d) =>
                               d.day >= _startDayFilter &&
                               d.day <= _endDayFilter)
                           .toList();
                       return LineSeries<DensityPoint, int>(
-                        name: pond,
+                        name: entity,
                         dataSource: filtered,
                         xValueMapper: (d, _) => d.day,
                         yValueMapper: (d, _) => d.qty,
@@ -237,6 +246,7 @@ class _ReportDensityScreenState extends State<ReportDensityScreen> {
                   width: MediaQuery.of(context).size.width - 24,
                   child: _buildSummary(),
                 ),
+               
               ],
             ),
           ),

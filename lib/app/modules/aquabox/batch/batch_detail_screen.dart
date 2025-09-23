@@ -17,47 +17,38 @@ class Pond {
   final String name;
   final int released; // số lượng thả ban đầu
   final int remain; // số lượng còn lại
-  Pond(this.code, this.name, this.released, this.remain);
+  final String type;
+
+  Pond(this.code, this.name, this.released, this.remain, this.type);
 }
 
-class BatchDetailScreen extends StatefulWidget {
-  const BatchDetailScreen({super.key});
-  @override
-  State<BatchDetailScreen> createState() => _BatchDetailScreenState();
-}
+// Chuyển sang StatelessWidget vì dữ liệu được truyền vào từ bên ngoài
+class BatchDetailScreen extends StatelessWidget {
+  final Map<String, dynamic> batch;
+  final List<Pond> ponds;
 
-class _BatchDetailScreenState extends State<BatchDetailScreen> {
+  BatchDetailScreen({
+    super.key,
+    required this.batch,
+  }) : ponds = List.generate(4, (i) {
+          final released = 800 + i * 50;
+          final remain = (released * .95).round();
+          return Pond(
+              'P${i + 1}',
+              '${batch['type'] == 'Tôm' || batch['type'] == 'Cá' ? 'Bể nuôi' : 'Chuồng nuôi'} ${i + 1}',
+              released,
+              remain,
+              batch['type']);
+        });
+
   final DateFormat _fmt = DateFormat('dd/MM/yyyy');
-
-  late final Map<String, dynamic> _batch;
-  late final List<Pond> _ponds;
-
-  @override
-  void initState() {
-    super.initState();
-    _batch = {
-      'code': 'BN999',
-      'name': 'Tôm Xuân 2025',
-      'type': 'Tôm',
-      'manager': 'Nguyễn Văn A',
-      'start': DateTime(2025, 1, 15),
-      'end': DateTime(2025, 5, 30),
-      'total': 3500,
-      'status': 'Đang nuôi',
-    };
-
-    // giả lập 4 bể: thả 800‑950 con, còn lại ±5%
-    _ponds = List.generate(4, (i) {
-      final released = 800 + i * 50;
-      final remain = (released * .95).round(); // còn lại 95% (ví dụ)
-      return Pond('P${i + 1}', 'Bể nuôi ${i + 1}', released, remain);
-    });
-  }
 
   /* ---------------- UI ---------------- */
   @override
   Widget build(BuildContext context) {
-    final b = _batch;
+    final b = batch;
+    final isAquatic = b['type'] == 'Tôm' || b['type'] == 'Cá';
+    final pondName = isAquatic ? 'Bể nuôi' : 'Chuồng';
 
     return AppBackground(
       child: Scaffold(
@@ -85,10 +76,8 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ------- THÔNG TIN LÔ NUÔI -------
               Stack(
                 children: [
-                  
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -101,14 +90,15 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
                         _info('Tên', b['name']),
                         const SizedBox(height: 4),
                         _info('Loại', b['type']),
-                        _info('Quản lý', b['manager']),
+                        _info('Quản lý', b['manager'] ?? 'Chưa xác định'),
                         const SizedBox(height: 4),
                         _info('Thời gian',
                             '${_fmt.format(b['start'])} → ${_fmt.format(b['end'])}'),
                         _info('Số lượng thả', b['total'].toString()),
                       ],
                     ),
-                  ),Positioned(
+                  ),
+                  Positioned(
                     right: 4,
                     top: 0,
                     child: Chip(
@@ -120,13 +110,11 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-
-              // ------- DANH SÁCH BỂ -------
               Row(
                 children: [
-                  const Text('Danh sách bể nuôi',
-                      style:
-                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  Text('Danh sách $pondName',
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.bold)),
                   const Spacer(),
                   TextButton.icon(
                     onPressed: () {},
@@ -144,32 +132,29 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
                 ],
               ),
               const SizedBox(height: 6),
-
               SizedBox(
                 width: MediaQuery.of(context).size.width - 24,
                 child: DataTable(
-                  headingRowColor:
-                      WidgetStateProperty.all(Colors.black), // header
-                  dataRowColor:
-                      WidgetStateProperty.all(Colors.white), // body
+                  headingRowColor: WidgetStateProperty.all(Colors.black),
+                  dataRowColor: WidgetStateProperty.all(Colors.white),
                   columnSpacing: 32,
-                  columns: const [
+                  columns: [
                     DataColumn(
-                        label: Text('Mã bể',
-                            style: TextStyle(color: Colors.white))),
+                        label: Text('Mã',
+                            style: const TextStyle(color: Colors.white))),
                     DataColumn(
-                        label: Text('Tên bể',
+                        label: Text('Tên $pondName',
+                            style: const TextStyle(color: Colors.white))),
+                    DataColumn(
+                        numeric: true,
+                        label: const Text('SL',
                             style: TextStyle(color: Colors.white))),
                     DataColumn(
                         numeric: true,
-                        label:
-                            Text('SL', style: TextStyle(color: Colors.white))),
-                    DataColumn(
-                        numeric: true,
-                        label: Text('Thực tế',
+                        label: const Text('Thực tế',
                             style: TextStyle(color: Colors.white))),
                   ],
-                  rows: _ponds
+                  rows: ponds
                       .map((p) => DataRow(cells: [
                             DataCell(Text(p.code)),
                             DataCell(Text(p.name)),
@@ -181,8 +166,6 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-
-              // ------- MENU CHỨC NĂNG -------
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -191,10 +174,16 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
                 crossAxisSpacing: 8,
                 childAspectRatio: 1.7,
                 children: [
-                  _menu(Icons.bar_chart, 'Mật độ nuôi'),
-                  _menu(Icons.restaurant, 'Thức ăn'),
-                  _menu(Icons.water_drop, 'Chất lượng nước'),
-                  _menu(Icons.health_and_safety, 'Sức khoẻ'),
+                  _menu(context, Icons.bar_chart, 'Mật độ nuôi', batch, ponds),
+                  _menu(context, Icons.restaurant, 'Thức ăn', batch, ponds),
+                  _menu(
+                      context,
+                      isAquatic ? Icons.water_drop : Icons.air,
+                      isAquatic ? 'Chất lượng nước' : 'Chất lượng không khí',
+                      batch,
+                      ponds),
+                  _menu(context, Icons.health_and_safety, 'Sức khoẻ', batch,
+                      ponds),
                 ],
               ),
             ],
@@ -205,100 +194,106 @@ class _BatchDetailScreenState extends State<BatchDetailScreen> {
   }
 
   /* ---------------- Widgets Helper ---------------- */
-  Widget _info(String k, String v) => Padding(
+  Widget _info(String k, dynamic v) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 1),
         child: Row(
           children: [
             SizedBox(width: 110, child: Text('$k:')),
             Expanded(
-                child: Text(v,
+                child: Text(v.toString(),
                     style: const TextStyle(fontWeight: FontWeight.w500))),
           ],
         ),
       );
 
-  Widget _menu(IconData ico, String title) => InkWell(
-        onTap: () {
-          switch (title) {
-            case "Mật độ nuôi":
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => ReportDensityScreen()));
-              break;
-            case "Thức ăn":
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => FeedReportScreen()));
-              break;
-            case "Chất lượng nước":
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => WaterQualityReportScreen()));
-              break;
-            default:
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => HealthReportScreen()));
-          }
-        },
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Stack(
-            children: [
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(ico, size: 32, color: Colors.blue.shade700),
-                    const SizedBox(height: 6),
-                    Text(title,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-              Positioned(
-                top: 2,
-                right: 2,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    switch (title) {
-                      case "Mật độ nuôi":
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => DensityScreen()));
-                        break;
-                      case "Thức ăn":
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => FeedScreen()));
-                        break;
-                      case "Chất lượng nước":
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => WaterQualityScreen()));
-                        break;
-                      default:
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => HealthScreen()));
-                    }
-                  },
-                  child: Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: CustomColors.appbarColor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.add, size: 16, color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
-          ),
+  Widget _menu(
+    BuildContext context,
+    IconData ico,
+    String title,
+    Map<String, dynamic> batch,
+    List<Pond> ponds,
+  ) {
+    final isAquatic = batch['type'] == 'Tôm' || batch['type'] == 'Cá';
+
+    // Determine the report/add screen to navigate to based on title
+    Widget reportScreen;
+    Widget addScreen;
+
+    switch (title) {
+      case "Mật độ nuôi":
+        // Đúng: Sử dụng tên widget đã refactor
+        reportScreen = ReportDensityScreen(isAquatic: isAquatic);
+        addScreen = DensityScreen(isAquatic: isAquatic);
+        break;
+      case "Thức ăn":
+        reportScreen = FeedReportScreen(isAquatic: isAquatic);
+        addScreen = FeedScreen(isAquatic: isAquatic);
+        break;
+      case "Chất lượng nước":
+        reportScreen = WaterQualityReportScreen(isAquatic: isAquatic);
+        addScreen = WaterQualityScreen(isAquatic: isAquatic);
+        break;
+      case "Chất lượng không khí":
+        reportScreen = WaterQualityReportScreen(isAquatic: isAquatic);
+        addScreen = WaterQualityScreen(isAquatic: isAquatic);
+        break;
+      case "Sức khoẻ":
+        reportScreen = HealthReportScreen(isAquatic: isAquatic);
+        addScreen = HealthScreen(isAquatic: isAquatic);
+        break;
+      default:
+        return const SizedBox.shrink();
+    }
+
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => reportScreen));
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
         ),
-      );
+        child: Stack(
+          children: [
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(ico, size: 32, color: Colors.blue.shade700),
+                  const SizedBox(height: 6),
+                  Text(title,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            Positioned(
+              top: 2,
+              right: 2,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  Navigator.push(
+                      context, MaterialPageRoute(builder: (_) => addScreen));
+                },
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: CustomColors.appbarColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.add, size: 16, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

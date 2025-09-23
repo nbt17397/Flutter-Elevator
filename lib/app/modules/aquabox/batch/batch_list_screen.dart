@@ -1,4 +1,3 @@
-// lib/screens/batch_list_screen.dart
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -9,7 +8,7 @@ import '../../../components/app_background.dart';
 import 'batch_detail_screen.dart';
 
 /* =============================================================== */
-/*                          MAIN SCREEN                            */
+/*                          MAIN SCREEN                            */
 /* =============================================================== */
 class BatchListScreen extends StatefulWidget {
   const BatchListScreen({super.key});
@@ -23,10 +22,14 @@ class _BatchListScreenState extends State<BatchListScreen> {
   final List<Map<String, dynamic>> _batches = List.generate(20, (i) {
     final rnd = Random();
     final now = DateTime.now();
+    final type = ['Heo', 'Gà', 'Tôm', 'Cá'][i % 4];
     return {
       'code': 'BN${100 + i}',
-      'type': ['Heo', 'Gà', 'Tôm', 'Cá'][i % 4],
+      'name': 'Vụ nuôi $type ${100 + i}',
+      'type': type,
       'start': now.subtract(Duration(days: rnd.nextInt(180))),
+      'end': now.add(Duration(days: rnd.nextInt(180))),
+      'manager': 'Nguyễn Văn A',
       'status': ['Đang nuôi', 'Khởi tạo', 'Kết thúc'][i % 3],
       'total': '${800 + rnd.nextInt(600)}',
     };
@@ -69,19 +72,14 @@ class _BatchListScreenState extends State<BatchListScreen> {
             )
           ],
         ),
-
-        /* ---------------- BODY ---------------- */
         body: Column(
           children: [
             const SizedBox(height: 12),
-
-            /* -------- segmented buttons -------- */
             Container(
               height: 44,
               margin: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                // border: Border.all(color: Colors.black26),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -93,8 +91,6 @@ class _BatchListScreenState extends State<BatchListScreen> {
               ),
             ),
             const SizedBox(height: 12),
-
-            /* -------------- list --------------- */
             Expanded(
               child: ListView.separated(
                 padding: const EdgeInsets.fromLTRB(10, 0, 10, 24),
@@ -110,7 +106,7 @@ class _BatchListScreenState extends State<BatchListScreen> {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (_) => const BatchDetailScreen()),
+                          builder: (_) => BatchDetailScreen(batch: b)),
                     ),
                   );
                 },
@@ -134,7 +130,7 @@ class _BatchListScreenState extends State<BatchListScreen> {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: _selectedIdx == idx
-                  ? const Color(0xFFDDE1EA) // ô được chọn
+                  ? const Color(0xFFDDE1EA)
                   : Colors.transparent,
               borderRadius: BorderRadius.horizontal(
                 left: idx == 0 ? const Radius.circular(8) : Radius.zero,
@@ -209,9 +205,11 @@ class _BatchListScreenState extends State<BatchListScreen> {
             child: Column(
               children: [
                 const Divider(),
-                TextField(controller: nameCtl, decoration: _dec('Tên vụ nuôi')),
+                TextField(
+                    controller: nameCtl, decoration: _dec('Tên vụ nuôi')),
                 const SizedBox(height: 10),
-                TextField(controller: codeCtl, decoration: _dec('Mã vụ nuôi')),
+                TextField(
+                    controller: codeCtl, decoration: _dec('Mã vụ nuôi')),
                 const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
                   value: animal,
@@ -282,8 +280,11 @@ class _BatchListScreenState extends State<BatchListScreen> {
             setState(() {
               _batches.add({
                 'code': codeCtl.text,
+                'name': nameCtl.text,
                 'type': animal!,
                 'start': startDate!,
+                'end': endDate!,
+                'manager': 'Chưa có',
                 'status': status!,
                 'total': totalCtl.text,
               });
@@ -309,7 +310,7 @@ class _BatchListScreenState extends State<BatchListScreen> {
 }
 
 /* =============================================================== */
-/*                          TILE WIDGET                            */
+/*                          TILE WIDGET                            */
 /* =============================================================== */
 class _BatchTile extends StatelessWidget {
   final Map<String, dynamic> b;
