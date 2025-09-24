@@ -116,8 +116,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildProfileItem(Icons.info, 'Phiên bản', '1.0.0'),
                   _buildProfileItem(
                       Icons.info,
-                      'CÔNG TY CỔ PHẦN VẬT TƯ KHKT – LASI',
-                      'Email: Info@lasi.com.vn | Website: www.lasi.com.vn'),
+                      'CÔNG TY CỔ PHẦN HẠO PHƯƠNG',
+                      'Email: Info@haophuong.com | Website: www.haophuong.com'),
                 ],
               );
             },
