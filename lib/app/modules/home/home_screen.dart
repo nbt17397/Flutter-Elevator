@@ -212,7 +212,10 @@ class _HomeScreenState extends State<HomeScreen> {
         title: 'Thiết bị',
         asset: 'assets/images/device.png',
         onTap: () => Navigator.push(
-            context, CupertinoPageRoute(builder: (_) => ScadaMenuScreen())),
+            context,
+            CupertinoPageRoute(
+                builder: (_) =>
+                    ScadaMenuScreen(locationId: _selectedLocationId!))),
       ),
       MenuItem(
         title: 'Năng lượng',

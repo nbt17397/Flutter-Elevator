@@ -1,4 +1,5 @@
 import 'package:elevator/app/components/app_background.dart';
+import 'package:elevator/app/data/response/location_response.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,15 +8,53 @@ import 'control_screen.dart';
 import 'maintenance_screen.dart';
 
 class ScadaMenuScreen extends StatefulWidget {
-  const ScadaMenuScreen({super.key});
+  final int locationId;
+  const ScadaMenuScreen({super.key, required this.locationId});
 
   @override
   State<ScadaMenuScreen> createState() => _ScadaMenuScreenState();
 }
 
 class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
+  int get locationId => widget.locationId;
   // Mỗi item gồm label, active, image
-  final _systems = <String, List<Map<String, dynamic>>>{
+  final _systems1 = <String, List<Map<String, dynamic>>>{
+    'Hệ 1': [
+      {
+        'label': 'Cho ăn tự động',
+        'active': true,
+        'image': 'assets/images/cho-an-tu-dong.jpg',
+        'groupId': 5
+      },
+      {
+        'label': 'Xử lý phân',
+        'active': true,
+        'image': 'assets/images/xu-ly-phan.jpg',
+        'groupId': 6
+      },
+      {
+        'label': 'Chuồng nuôi 1',
+        'active': true,
+        'image': 'assets/images/chuong-nuoi.jpg',
+        'groupId': 7
+      },
+      {
+        'label': 'Chuồng nuôi 2',
+        'active': true,
+        'image': 'assets/images/chuong-nuoi.jpg',
+        'groupId': 8
+      },
+      {
+        'label': 'Chuồng nuôi 3',
+        'active': true,
+        'image': 'assets/images/chuong-nuoi.jpg',
+        'groupId': 9
+      },
+    ],
+    'Hệ 2': [],
+    'Hệ 3': []
+  };
+  final _systems2 = <String, List<Map<String, dynamic>>>{
     'Hệ 1': _defaultItems(),
     'Hệ 2': _defaultItems(),
     'Hệ 3': _defaultItems(),
@@ -23,19 +62,22 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
       {
         'label': 'Hệ thống lọc nước',
         'active': false,
-        'image': 'assets/images/scada.png'
+        'image': 'assets/images/scada.png',
+        'groupId': 1
       },
     ],
     'Nhà khí': [
       {
         'label': 'Hệ thống blower',
         'active': false,
-        'image': 'assets/images/scada.png'
+        'image': 'assets/images/scada.png',
+        'groupId': 1
       },
       {
         'label': 'Hệ thống oxygen',
         'active': false,
-        'image': 'assets/images/oxygen.png'
+        'image': 'assets/images/oxygen.png',
+        'groupId': 1
       },
     ],
   };
@@ -45,27 +87,32 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
       {
         'label': 'Demo thủy sản',
         'active': true,
-        'image': 'assets/images/demo.png'
+        'image': 'assets/images/demo.png',
+        'groupId': 1
       },
       {
         'label': 'Bể nuôi 1',
         'active': false,
-        'image': 'assets/images/pond.png'
+        'image': 'assets/images/pond.png',
+        'groupId': 1
       },
       {
         'label': 'Bể nuôi 2',
         'active': false,
-        'image': 'assets/images/pond.png'
+        'image': 'assets/images/pond.png',
+        'groupId': 1
       },
       {
         'label': 'Bể nuôi 3',
         'active': false,
-        'image': 'assets/images/pond.png'
+        'image': 'assets/images/pond.png',
+        'groupId': 1
       },
       {
         'label': 'Oxygen',
         'active': false,
-        'image': 'assets/images/oxygen.png'
+        'image': 'assets/images/oxygen.png',
+        'groupId': 1
       },
     ];
   }
@@ -75,12 +122,13 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
   @override
   void initState() {
     super.initState();
-    _currentKey = _systems.keys.first;
+    _currentKey = locationId == 5 ? _systems1.keys.first : _systems2.keys.first;
   }
 
   @override
   Widget build(BuildContext context) {
-    final items = _systems[_currentKey]!;
+    final items =
+        locationId == 5 ? _systems1[_currentKey]! : _systems2[_currentKey]!;
 
     return AppBackground(
       child: Scaffold(
@@ -98,38 +146,73 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: _systems.keys.map((key) {
-                    final selected = key == _currentKey;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: () => setState(() => _currentKey = key),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: selected
-                                ? Theme.of(context)
-                                    .primaryColor
-                                    .withOpacity(.15)
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            key,
-                            style: TextStyle(
-                              fontWeight:
-                                  selected ? FontWeight.bold : FontWeight.w500,
-                              color: selected
-                                  ? Theme.of(context).primaryColor
-                                  : Colors.black87,
+                  children: locationId == 5
+                      ? _systems1.keys.map((key) {
+                          final selected = key == _currentKey;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () => setState(() => _currentKey = key),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: selected
+                                      ? Theme.of(context)
+                                          .primaryColor
+                                          .withOpacity(.15)
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  key,
+                                  style: TextStyle(
+                                    fontWeight: selected
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
+                                    color: selected
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                          );
+                        }).toList()
+                      : _systems2.keys.map((key) {
+                          final selected = key == _currentKey;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () => setState(() => _currentKey = key),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: selected
+                                      ? Theme.of(context)
+                                          .primaryColor
+                                          .withOpacity(.15)
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  key,
+                                  style: TextStyle(
+                                    fontWeight: selected
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
+                                    color: selected
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                 ),
               ),
               const SizedBox(height: 10),
@@ -176,7 +259,8 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                           context,
                                           CupertinoPageRoute(
                                             builder: (_) => DeviceControlScreen(
-                                                label: image),
+                                                label: image,
+                                                groupId: item['groupId']),
                                           ),
                                         );
                                       },
@@ -195,7 +279,8 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                               Expanded(
                                                 child: Padding(
                                                   padding:
-                                                      const EdgeInsets.fromLTRB(8,8,8,0),
+                                                      const EdgeInsets.fromLTRB(
+                                                          8, 8, 8, 0),
                                                   child: Hero(
                                                     tag: label,
                                                     child: Image.asset(
@@ -248,7 +333,8 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                             CupertinoPageRoute(
                                               builder: (_) =>
                                                   DeviceControlScreen(
-                                                      label: image),
+                                                      label: image,
+                                                      groupId: item['groupId']),
                                             ),
                                           );
                                         } else if (value == 'maint') {

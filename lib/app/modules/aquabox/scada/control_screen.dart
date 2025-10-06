@@ -11,7 +11,8 @@ import 'bloc/control_bloc.dart';
 
 class DeviceControlScreen extends StatefulWidget {
   final String label;
-  const DeviceControlScreen({Key? key, required this.label}) : super(key: key);
+  final int groupId;
+  const DeviceControlScreen({Key? key, required this.label,required this.groupId}) : super(key: key);
 
   @override
   State<DeviceControlScreen> createState() => _DeviceControlScreenState();
@@ -21,13 +22,12 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
   bool _autoMode = false;
   late MqttProvider _mqtt;
   late ControlBloc _bloc;
-  final int _groupId = 1;
 
   @override
   void initState() {
     super.initState();
     _mqtt = Provider.of<MqttProvider>(context, listen: false);
-    _bloc = ControlBloc()..add(FetchRegisters(_groupId));
+    _bloc = ControlBloc()..add(FetchRegisters(widget.groupId));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _mqtt.subscribeTopic('controller_1/auto_mode/state');
