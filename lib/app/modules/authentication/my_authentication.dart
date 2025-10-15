@@ -3,7 +3,6 @@ import 'package:elevator/app/modules/home/menu_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:model_viewer_plus/model_viewer_plus.dart';
 
 import '../../../config/theme/my_theme.dart';
 import '../../../config/translations/localization_service.dart';
@@ -16,6 +15,7 @@ import '../home/home_screen.dart';
 import 'bloc/authentication_bloc.dart';
 import 'package:get/get.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 class MyAuthentication extends StatefulWidget {
   const MyAuthentication({super.key});
@@ -47,6 +47,7 @@ class _MyAuthenticationState extends State<MyAuthentication> {
 
     _authenticationBloc = AuthenticationBloc();
     _authenticationBloc.add(AppStarted());
+    FlutterNativeSplash.remove();
   }
 
   @override
@@ -66,8 +67,7 @@ class _MyAuthenticationState extends State<MyAuthentication> {
       rebuildFactor: (old, data) => true,
       builder: (context, widget) {
         return GetMaterialApp(
-          // todo add your app name
-          title: "HP-Elevator",
+          title: "LASI",
           useInheritedMediaQuery: true,
           debugShowCheckedModeBanner: false,
           builder: (context, widget) {
@@ -75,9 +75,8 @@ class _MyAuthenticationState extends State<MyAuthentication> {
             return Theme(
               data: MyTheme.getThemeData(isLight: themeIsLight),
               child: MediaQuery(
-                // prevent font from scalling (some people use big/small device fonts)
-                // but we want our app font to still the same and dont get affected
-                data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+                data: MediaQuery.of(context)
+                    .copyWith(textScaler: TextScaler.linear(1.0)),
                 child: widget!,
               ),
             );
@@ -85,6 +84,7 @@ class _MyAuthenticationState extends State<MyAuthentication> {
           // initialRoute: AppPages.AUTH, // first screen to show when app is running
           getPages: AppPages.routes, // app screens
           locale: MySharedPref.getCurrentLocal(), // app language
+
           translations: LocalizationService
               .getInstance(), // localization services in app (controller app language)
           home: BlocListener(
@@ -129,18 +129,6 @@ class _MyAuthenticationState extends State<MyAuthentication> {
                   if (box.containsKey(0)) {
                     ApiProvider.setBearerAuth(userModel.accessToken);
                     return MenuScreen();
-                    // return Scaffold(
-                    //   body: ModelViewer(
-                    //     src:
-                    //         // 'assets/3d/astronaut.glb',
-                    //         'assets/3d/3d.glb',
-                    //     alt: "Mô hình 3D",
-                    //     ar: true,
-                    //     autoRotate: true,
-                    //     cameraControls: true,
-                    //     backgroundColor: Colors.white70,
-                    //   ),
-                    // );
                   } else {
                     return const LoginScreen();
                   }

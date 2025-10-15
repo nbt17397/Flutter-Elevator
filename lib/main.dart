@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'app/data/local/my_hive.dart';
 import 'app/data/local/my_shared_pref.dart';
@@ -13,12 +12,12 @@ import 'app/data/models/user_model.dart';
 import 'app/modules/authentication/bloc/authentication_bloc.dart';
 import 'app/services/mqtt/mqtt_provider.dart';
 import 'app/services/mqtt/mqtt_service.dart';
-// import 'utils/fcm_helper.dart';
-// import 'package:getx_skeleton/utils/awesome_notifications_helper.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 Future<void> main() async {
   // wait for bindings
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await checkAndRequestLocationPermission();
   final mqttService = MqttService();
   // initialize local db (hive) and register our custom adapters
@@ -26,7 +25,6 @@ Future<void> main() async {
     hive.registerAdapter(UserModelAdapter());
   });
 
-  WakelockPlus.enable();
   // init shared preference
   await MySharedPref.init();
   await Hive.openBox<UserModel>('userModel');

@@ -29,7 +29,6 @@ class MqttService {
 
     client!.onDisconnected = () {
       print("❌ Mất kết nối MQTT! Đang thử kết nối lại...");
-      print("🔍 Lý do: ${client!.connectionStatus?.disconnectionOrigin}");
       _isConnected = false;
       _attemptReconnect(onMessageReceived);
     };
@@ -89,17 +88,12 @@ class MqttService {
   }
 
   void unsubscribe(String topic) {
-    try {
-      final state = client?.connectionStatus?.state;
-      if (client != null && state == MqttConnectionState.connected) {
-        print("🟡 Hủy đăng ký topic: $topic");
-        client!.unsubscribe(topic, expectAcknowledge: true);
-        print("✅ Unsubscribe đã gửi, chờ phản hồi broker...");
-      } else {
-        print("⚠️ Client chưa kết nối, không unsubscribe.");
-      }
-    } catch (e) {
-      print("❌ Lỗi khi hủy subscribe: $e");
+    if (client != null &&
+        client!.connectionStatus?.state == MqttConnectionState.connected) {
+      client!.unsubscribe(topic, expectAcknowledge: true);
+      print("🚫 Unsubscribed: $topic");
+    } else {
+      print("⚠️ Không thể unsubscribe, client chưa kết nối!");
     }
   }
 

@@ -19,8 +19,10 @@ class _LoginScreenState extends State<LoginScreen> {
   late LoginBloc _loginBloc;
   late AuthenticationBloc _authenticationBloc;
   final _formSignInKey = GlobalKey<FormState>();
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _usernameController =
+      TextEditingController(text: "hpc");
+  final TextEditingController _passwordController =
+      TextEditingController(text: "123456");
   bool rememberPassword = true;
   bool _obscureText = true;
 
@@ -73,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        'Controller',
+                        'LASI',
                         style: TextStyle(
                           fontSize: 30.0,
                           fontWeight: FontWeight.w900,

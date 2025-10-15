@@ -15,18 +15,18 @@ class AlarmElevatorScreen extends StatefulWidget {
 
 class _AlarmElevatorScreenState extends State<AlarmElevatorScreen> {
   final Map<int, String> errorDescriptions = {
-    0: 'Lỗi máy bơm',
+    0: 'Bảo trì',
     1: 'Tự học hành trình',
     2: 'Chạy về tầng',
     3: 'Chữa cháy quay về trạm gốc',
-    4: 'Lỗi van',
+    4: 'Lính cứu hỏa chạy',
     5: 'Thất bại',
     6: 'Lái xe',
     7: 'Tự động',
-    8: 'Error',
+    8: 'Khóa thang',
     9: 'Thang đậu xe miễn phí',
     10: 'Tốc độ quay trở lại lớp cân bằng thấp',
-    11: 'Timeout',
+    11: 'Chạy giải cứu',
     12: 'Điều chỉnh động cơ',
     13: 'Điều khiển bàn phím',
     14: 'Xác minh trạm gốc',
@@ -92,12 +92,12 @@ class _AlarmElevatorScreenState extends State<AlarmElevatorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Thông báo'),
+        title: const Text('Cảnh báo'),
         backgroundColor: CustomColors.appbarColor,
         centerTitle: true,
       ),
       body: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(16),
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
@@ -109,9 +109,18 @@ class _AlarmElevatorScreenState extends State<AlarmElevatorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Text(
+              'Danh sách lỗi thang máy',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 10),
             Expanded(
               child: Container(
-                padding: const EdgeInsets.all(0),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.6),
                   borderRadius: BorderRadius.circular(6),
@@ -133,7 +142,7 @@ class _AlarmElevatorScreenState extends State<AlarmElevatorScreen> {
                     } else if (alarmList.isEmpty) {
                       return const Center(
                         child: Text(
-
+                          
                           'Không có dữ liệu lỗi.',
                           style: TextStyle(color: Colors.white, fontSize: 16),
                         ),

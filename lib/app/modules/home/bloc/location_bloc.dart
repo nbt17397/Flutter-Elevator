@@ -17,17 +17,17 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         LocationResponse resp = await _userRepo.getLocationByUser();
         List<LocationDB> locations = resp.results ?? [];
 
-        Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-        );
+        // Position position = await Geolocator.getCurrentPosition(
+        //   desiredAccuracy: LocationAccuracy.high,
+        // );
 
         if (locations.isEmpty) {
           emit(GetLocationEmpty());
         } else {
           emit(GetLocationLoaded(
             locations: locations,
-            currentLatitude: position.latitude,
-            currentLongitude: position.longitude,
+            // currentLatitude: position.latitude,
+            // currentLongitude: position.longitude,
           ));
         }
       } catch (e) {

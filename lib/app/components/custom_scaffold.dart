@@ -14,18 +14,19 @@ class CustomScaffold extends StatelessWidget {
       extendBodyBehindAppBar: true,
       body: Stack(
         children: [
-          Image.asset(
-            'assets/images/bg1.png',
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-          ),Positioned(
+          // Image.asset(
+          //   'assets/images/bg1.png',
+          //   fit: BoxFit.cover,
+          //   width: double.infinity,
+          //   height: double.infinity,
+          // ),
+          Positioned(
             top: 1,
             right: 1,
             child: CircleAvatar(
               radius: 55,
               backgroundColor: Colors.transparent,
-              child: Image.asset('assets/images/logo1.png'),
+              child: Image.asset('assets/icon/icon.png'),
             ),
           ),
           SafeArea(
