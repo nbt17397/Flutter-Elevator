@@ -33,6 +33,7 @@ class RegisterDB {
   String? description;
   int? value;
   String? type;
+  String? unit;
   bool? status;
   String? topic;
 
@@ -45,6 +46,7 @@ class RegisterDB {
       this.description,
       this.value,
       this.type,
+      this.unit,
       this.status,
       this.topic});
 
@@ -57,6 +59,7 @@ class RegisterDB {
     description = json['description'];
     value = json['value'];
     type = json['type'];
+    unit = json['unit'];
     status = json['status'];
     topic = json['topic'];
   }
@@ -71,6 +74,7 @@ class RegisterDB {
     data['description'] = this.description;
     data['value'] = this.value;
     data['type'] = this.type;
+    data['unit'] = this.unit;
     data['status'] = this.status;
     data['topic'] = this.topic;
     return data;

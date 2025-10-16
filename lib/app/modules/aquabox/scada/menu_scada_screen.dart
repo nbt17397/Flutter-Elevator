@@ -117,18 +117,37 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
     ];
   }
 
+  final _systems3 = <String, List<Map<String, dynamic>>>{
+    'Khu vực 1': [
+      {
+        'label': 'Điện năng & công suất',
+        'active': true,
+        'image': 'assets/images/device.png',
+        'groupId': 10
+      },
+    ],
+    'Khu vực 2': []
+  };
+
   late String _currentKey;
 
   @override
   void initState() {
     super.initState();
-    _currentKey = locationId == 5 ? _systems1.keys.first : _systems2.keys.first;
+    _currentKey = locationId == 5
+        ? _systems1.keys.first
+        : locationId == 6
+            ? _systems3.keys.first
+            : _systems2.keys.first;
   }
 
   @override
   Widget build(BuildContext context) {
-    final items =
-        locationId == 5 ? _systems1[_currentKey]! : _systems2[_currentKey]!;
+    final items = locationId == 5
+        ? _systems1[_currentKey]!
+        : locationId == 6
+            ? _systems3[_currentKey]!
+            : _systems2[_currentKey]!;
 
     return AppBackground(
       child: Scaffold(
@@ -180,39 +199,75 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                             ),
                           );
                         }).toList()
-                      : _systems2.keys.map((key) {
-                          final selected = key == _currentKey;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              onTap: () => setState(() => _currentKey = key),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: selected
-                                      ? Theme.of(context)
-                                          .primaryColor
-                                          .withOpacity(.15)
-                                      : Colors.white,
+                      : locationId == 6
+                          ? _systems3.keys.map((key) {
+                              final selected = key == _currentKey;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: InkWell(
                                   borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  key,
-                                  style: TextStyle(
-                                    fontWeight: selected
-                                        ? FontWeight.bold
-                                        : FontWeight.w500,
-                                    color: selected
-                                        ? Theme.of(context).primaryColor
-                                        : Colors.black87,
+                                  onTap: () =>
+                                      setState(() => _currentKey = key),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: selected
+                                          ? Theme.of(context)
+                                              .primaryColor
+                                              .withOpacity(.15)
+                                          : Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      key,
+                                      style: TextStyle(
+                                        fontWeight: selected
+                                            ? FontWeight.bold
+                                            : FontWeight.w500,
+                                        color: selected
+                                            ? Theme.of(context).primaryColor
+                                            : Colors.black87,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                              );
+                            }).toList()
+                          : _systems2.keys.map((key) {
+                              final selected = key == _currentKey;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: () =>
+                                      setState(() => _currentKey = key),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: selected
+                                          ? Theme.of(context)
+                                              .primaryColor
+                                              .withOpacity(.15)
+                                          : Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      key,
+                                      style: TextStyle(
+                                        fontWeight: selected
+                                            ? FontWeight.bold
+                                            : FontWeight.w500,
+                                        color: selected
+                                            ? Theme.of(context).primaryColor
+                                            : Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                 ),
               ),
               const SizedBox(height: 10),
