@@ -26,10 +26,11 @@ class Pond {
 class BatchDetailScreen extends StatelessWidget {
   final Map<String, dynamic> batch;
   final List<Pond> ponds;
+  final bool isTest;
 
   BatchDetailScreen({
     super.key,
-    required this.batch,
+    required this.batch,required this.isTest,
   }) : ponds = List.generate(4, (i) {
           final released = 800 + i * 50;
           final remain = (released * .95).round();
@@ -230,11 +231,11 @@ class BatchDetailScreen extends StatelessWidget {
         addScreen = FeedScreen(isAquatic: isAquatic);
         break;
       case "Chất lượng nước":
-        reportScreen = WaterQualityReportScreen(isAquatic: isAquatic);
+        reportScreen = WaterQualityReportScreen(isAquatic: isAquatic, isTest: isTest);
         addScreen = WaterQualityScreen(isAquatic: isAquatic);
         break;
       case "Chất lượng không khí":
-        reportScreen = WaterQualityReportScreen(isAquatic: isAquatic);
+        reportScreen = WaterQualityReportScreen(isAquatic: isAquatic, isTest: isTest,);
         addScreen = WaterQualityScreen(isAquatic: isAquatic);
         break;
       case "Sức khoẻ":

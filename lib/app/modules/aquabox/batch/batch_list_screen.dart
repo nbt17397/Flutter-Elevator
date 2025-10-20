@@ -11,7 +11,8 @@ import 'batch_detail_screen.dart';
 /*                          MAIN SCREEN                            */
 /* =============================================================== */
 class BatchListScreen extends StatefulWidget {
-  const BatchListScreen({super.key});
+  final bool isTest;
+  const BatchListScreen({super.key, required this.isTest});
 
   @override
   State<BatchListScreen> createState() => _BatchListScreenState();
@@ -19,21 +20,45 @@ class BatchListScreen extends StatefulWidget {
 
 class _BatchListScreenState extends State<BatchListScreen> {
   /* ---------- fake data ---------- */
-  final List<Map<String, dynamic>> _batches = List.generate(20, (i) {
-    final rnd = Random();
-    final now = DateTime.now();
-    final type = ['Heo', 'Gà', 'Tôm', 'Cá'][i % 4];
-    return {
-      'code': 'BN${100 + i}',
-      'name': 'Vụ nuôi $type ${100 + i}',
-      'type': type,
-      'start': now.subtract(Duration(days: rnd.nextInt(180))),
-      'end': now.add(Duration(days: rnd.nextInt(180))),
-      'manager': 'Nguyễn Văn A',
-      'status': ['Đang nuôi', 'Khởi tạo', 'Kết thúc'][i % 3],
-      'total': '${800 + rnd.nextInt(600)}',
-    };
-  });
+  late final List<Map<String, dynamic>> _batches;
+  final rnd = Random();
+  final now = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isTest) {
+      // Trường hợp isTest = true: Chỉ tạo 1 vụ nuôi, loại là 'Tôm' hoặc 'Cá'
+      final type = ['Tôm', 'Cá'][rnd.nextInt(2)];
+      _batches = [
+        {
+          'code': 'BN001TEST',
+          'name': 'Vụ nuôi TEST $type 001',
+          'type': type,
+          'start': now.subtract(const Duration(days: 30)),
+          'end': now.add(const Duration(days: 90)),
+          'manager': 'Nguyễn Văn Test',
+          'status': 'Đang nuôi',
+          'total': '1000',
+        },
+      ];
+    } else {
+      // Trường hợp isTest = false: Dữ liệu giả lập như cũ (20 vụ)
+      _batches = List.generate(20, (i) {
+        final type = ['Heo', 'Gà', 'Tôm', 'Cá'][i % 4];
+        return {
+          'code': 'BN${100 + i}',
+          'name': 'Vụ nuôi $type ${100 + i}',
+          'type': type,
+          'start': now.subtract(Duration(days: rnd.nextInt(180))),
+          'end': now.add(Duration(days: rnd.nextInt(180))),
+          'manager': 'Nguyễn Văn A',
+          'status': ['Đang nuôi', 'Khởi tạo', 'Kết thúc'][i % 3],
+          'total': '${800 + rnd.nextInt(600)}',
+        };
+      });
+    }
+  }
 
   final List<String> _tabs = ['Đang nuôi', 'Khởi tạo', 'Kết thúc'];
   int _selectedIdx = 0; // 0 → Đang nuôi
@@ -106,7 +131,7 @@ class _BatchListScreenState extends State<BatchListScreen> {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (_) => BatchDetailScreen(batch: b)),
+                          builder: (_) => BatchDetailScreen(batch: b,isTest: widget.isTest,)),
                     ),
                   );
                 },
@@ -176,6 +201,10 @@ class _BatchListScreenState extends State<BatchListScreen> {
         lastDate: DateTime(2100),
       );
       if (picked != null) {
+        // Cần dùng setState của modal/StatefulBuilder để cập nhật UI trong dialog
+        // Tuy nhiên, logic này đang dùng setState của _BatchListScreenState
+        // để đơn giản, ta giữ nguyên và chấp nhận dialog sẽ đóng/mở lại nếu setState được gọi.
+        // Tốt hơn nên dùng StatefulBuilder
         setState(() {
           if (isStart) {
             startDate = picked;
@@ -221,7 +250,22 @@ class _BatchListScreenState extends State<BatchListScreen> {
                 ),
                 const SizedBox(height: 10),
                 GestureDetector(
-                  onTap: () => _pickDate(true),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: startDate ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100),
+                    );
+                    if (picked != null) {
+                      setModal(() {
+                        startDate = picked;
+                        if (endDate != null && endDate!.isBefore(startDate!)) {
+                          endDate = null;
+                        }
+                      });
+                    }
+                  },
                   child: _dateField(
                       startDate == null
                           ? 'Ngày bắt đầu'
@@ -230,7 +274,19 @@ class _BatchListScreenState extends State<BatchListScreen> {
                 ),
                 const SizedBox(height: 10),
                 GestureDetector(
-                  onTap: startDate == null ? null : () => _pickDate(false),
+                  onTap: startDate == null
+                      ? null
+                      : () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: endDate ?? startDate!,
+                            firstDate: startDate!,
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) {
+                            setModal(() => endDate = picked);
+                          }
+                        },
                   child: _dateField(
                     endDate == null ? 'Ngày kết thúc' : _fmt.format(endDate!),
                     enabled: startDate != null,

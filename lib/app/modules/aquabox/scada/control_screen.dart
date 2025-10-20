@@ -13,8 +13,12 @@ import 'bloc/control_bloc.dart';
 class DeviceControlScreen extends StatefulWidget {
   final String label;
   final int groupId;
+  final String topic;
   const DeviceControlScreen(
-      {Key? key, required this.label, required this.groupId})
+      {Key? key,
+      required this.label,
+      required this.groupId,
+      required this.topic})
       : super(key: key);
 
   @override
@@ -25,6 +29,7 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
   bool _autoMode = false;
   late MqttProvider _mqtt;
   late ControlBloc _bloc;
+  Map<String, String> _groupDataMap = {};
 
   @override
   void initState() {
@@ -34,8 +39,10 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
     _bloc = ControlBloc()..add(FetchRegisters(widget.groupId));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // _mqtt.subscribeTopic('controller_1/auto_mode/state');
-      // Đảm bảo logic publish này là cần thiết (thường là restart/init)
+      if (widget.topic != '') {
+        _mqtt.subscribeTopic('${widget.topic}get');
+        _mqtt.publishMessage('${widget.topic}state', '{}');
+      }
     });
   }
 
@@ -47,11 +54,12 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
 
   // Hàm xây dựng Widget điều khiển/thông số
   Widget _buildControlOrParamWidget(
-      RegisterDB dev, MqttProvider mqtt, bool isConnect, bool isOn) {
+      RegisterDB dev, MqttProvider mqtt, bool isConnect, bool isOn, {String? paramValue, String? rawMessage}) {
     // 💡 LOGIC CẦN THAY ĐỔI: Kiểm tra dev.type
     if (dev.type == 'param') {
       // Nếu là thông số (param) thì hiển thị Text (giá trị hiện tại)
-      String currentValue = mqtt.messages['${dev.topic}state'] ?? 'N/A';
+      // String currentValue = mqtt.messages['${dev.topic}state'] ?? 'N/A';
+      String currentValue = paramValue ?? 'N/A';
       try {
         // Cố gắng parse JSON để lấy giá trị nếu là định dạng JSON
         final d = json.decode(currentValue);
@@ -76,7 +84,7 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
         onChanged: (v) {
           if (!_autoMode && isConnect) {
             mqtt.publishMessage(
-                '${dev.topic}set', json.encode({'status': v ? 1 : 0}));
+                '${dev.topic}/set', json.encode({'status': v ? 1 : 0}));
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -134,7 +142,9 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
                   if (state is GetRegisterLoaded) {
                     // Đảm bảo RegisterModel có thuộc tính `topic`
                     for (var reg in state.registers) {
-                      _mqtt.subscribeTopic('${reg.topic}state');
+                      if (widget.topic == '') {
+                        _mqtt.subscribeTopic('${reg.topic}state');
+                      }
                     }
                   }
                 },
@@ -160,27 +170,70 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
                       final regs = state.registers;
                       return Consumer<MqttProvider>(
                         builder: (context, mqtt, _) {
+                          String? msg = mqtt.messages['${widget.topic}get'];
+                          // 💡 PHẦN TODO ĐÃ ĐƯỢC THỰC HIỆN TẠI ĐÂY
+                          if (widget.topic != '' &&
+                              msg != null &&
+                              msg.isNotEmpty) {
+                            try {
+                              final List<dynamic> responseArray =
+                                  json.decode(msg);
+                              if (msg != _groupDataMap['__last_raw_msg__']) {
+                                _groupDataMap.clear();
+                                _groupDataMap['__last_raw_msg__'] =
+                                    msg; // Lưu tin nhắn thô để so sánh lần sau
+
+                                for (var item in responseArray) {
+                                  if (item is Map<String, dynamic> &&
+                                      item.containsKey('addr') &&
+                                      item.containsKey('value')) {
+                                    final String addr = item['addr'] as String;
+                                    final dynamic value = item['value'];
+
+                                    // 2. Chuẩn hóa và gán: Key = dev.topic, Value = JSON String chuẩn {"status": value}
+                                    _groupDataMap[addr] =
+                                        json.encode({'status': value});
+                                  }
+                                }
+                              }
+                            } catch (e) {
+                              print(
+                                  'Lỗi phân tích JSON Array trên ${widget.topic}get: $e');
+                              _groupDataMap.clear();
+                            }
+                          }
                           return SliverPadding(
                             padding: const EdgeInsets.only(bottom: 80.0),
                             sliver: SliverList(
                               delegate: SliverChildBuilderDelegate(
                                 (context, index) {
                                   final dev = regs[index];
-                                  final raw = mqtt.messages['${dev.topic}state'];
+                                  // final raw =
+                                  // mqtt.messages['${dev.topic}state'];
+
+                                  String? raw = _groupDataMap[dev.topic];
+
+                                  // Nếu không tìm thấy trong map nhóm, quay về cách đọc topic đơn lẻ (raw gốc)
+                                  if (raw == null || raw.isEmpty) {
+                                    raw = mqtt.messages['${dev.topic}state'];
+                                  }
+
                                   bool isOn = false, isConnect = false;
-                            
+                                  dynamic value = 0;
+
                                   // Xử lý trạng thái kết nối và bật/tắt (cho thiết bị điều khiển)
                                   if (raw?.isNotEmpty == true) {
                                     try {
                                       final d = json.decode(raw!);
                                       // Giả định trạng thái bật/tắt nằm trong trường 'status'
                                       isOn = d['status'] == 1;
+                                      value = d['status'];
                                       isConnect = true;
                                     } catch (_) {
                                       // Trường hợp không decode được JSON, coi như không có kết nối hoặc dữ liệu lỗi
                                     }
                                   }
-                            
+
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 12, vertical: 4),
@@ -189,7 +242,7 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
                                         context,
                                         CupertinoPageRoute(
                                           builder: (_) => DeviceDetailScreen(
-                                              deviceName: dev.name!),
+                                              register: dev),
                                         ),
                                       ),
                                       child: Container(
@@ -198,7 +251,8 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
                                             horizontal: 12),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                           border: Border.all(
                                               color: Colors.grey.shade300),
                                         ),
@@ -222,7 +276,7 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
                                             ),
                                             // 💡 Đổi phần này để gọi hàm tùy chỉnh
                                             _buildControlOrParamWidget(
-                                                dev, mqtt, isConnect, isOn),
+                                                dev, mqtt, isConnect, isOn,paramValue: value.toString()),
                                           ],
                                         ),
                                       ),

@@ -24,31 +24,36 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
         'label': 'Cho ăn tự động',
         'active': true,
         'image': 'assets/images/cho-an-tu-dong.jpg',
-        'groupId': 5
+        'groupId': 5,
+        'topic': ''
       },
       {
         'label': 'Xử lý phân',
         'active': true,
         'image': 'assets/images/xu-ly-phan.jpg',
-        'groupId': 6
+        'groupId': 6,
+        'topic': ''
       },
       {
         'label': 'Chuồng nuôi 1',
         'active': true,
         'image': 'assets/images/chuong-nuoi.jpg',
-        'groupId': 7
+        'groupId': 7,
+        'topic': ''
       },
       {
         'label': 'Chuồng nuôi 2',
         'active': true,
         'image': 'assets/images/chuong-nuoi.jpg',
-        'groupId': 8
+        'groupId': 8,
+        'topic': ''
       },
       {
         'label': 'Chuồng nuôi 3',
         'active': true,
         'image': 'assets/images/chuong-nuoi.jpg',
-        'groupId': 9
+        'groupId': 9,
+        'topic': ''
       },
     ],
     'Hệ 2': [],
@@ -63,7 +68,8 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
         'label': 'Hệ thống lọc nước',
         'active': false,
         'image': 'assets/images/scada.png',
-        'groupId': 1
+        'groupId': 1,
+        'topic': ''
       },
     ],
     'Nhà khí': [
@@ -71,13 +77,15 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
         'label': 'Hệ thống blower',
         'active': false,
         'image': 'assets/images/scada.png',
-        'groupId': 1
+        'groupId': 1,
+        'topic': ''
       },
       {
         'label': 'Hệ thống oxygen',
         'active': false,
         'image': 'assets/images/oxygen.png',
-        'groupId': 1
+        'groupId': 1,
+        'topic': ''
       },
     ],
   };
@@ -88,31 +96,36 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
         'label': 'Demo thủy sản',
         'active': true,
         'image': 'assets/images/demo.png',
-        'groupId': 1
+        'groupId': 1,
+        'topic': ''
       },
       {
         'label': 'Bể nuôi 1',
         'active': false,
         'image': 'assets/images/pond.png',
-        'groupId': 1
+        'groupId': 1,
+        'topic': ''
       },
       {
         'label': 'Bể nuôi 2',
         'active': false,
         'image': 'assets/images/pond.png',
-        'groupId': 1
+        'groupId': 1,
+        'topic': ''
       },
       {
         'label': 'Bể nuôi 3',
         'active': false,
         'image': 'assets/images/pond.png',
-        'groupId': 1
+        'groupId': 1,
+        'topic': ''
       },
       {
         'label': 'Oxygen',
         'active': false,
         'image': 'assets/images/oxygen.png',
-        'groupId': 1
+        'groupId': 1,
+        'topic': ''
       },
     ];
   }
@@ -123,10 +136,80 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
         'label': 'Điện năng & công suất',
         'active': true,
         'image': 'assets/images/device.png',
-        'groupId': 10
+        'groupId': 10,
+        'topic': ''
       },
     ],
     'Khu vực 2': []
+  };
+
+  final _systems4 = <String, List<Map<String, dynamic>>>{
+    'Hệ 1': [
+      {
+        'label': 'Bơm đầu vào',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 11,
+        'topic': 'bom_nuoc_vao/'
+      },
+      {
+        'label': 'aquabox new',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 12,
+        'topic': 'aquabox_new/'
+      },
+      {
+        'label': 'Bể nuôi 1',
+        'active': true,
+        'image': 'assets/images/pond.png',
+        'groupId': 13,
+        'topic': 'be_nuoi_1/'
+      },
+      {
+        'label': 'Bể nuôi 2',
+        'active': true,
+        'image': 'assets/images/pond.png',
+        'groupId': 14,
+        'topic': 'be_nuoi_2/'
+      },
+      {
+        'label': 'Bể nuôi 3',
+        'active': true,
+        'image': 'assets/images/pond.png',
+        'groupId': 15,
+        'topic': 'be_nuoi_3/'
+      },
+      {
+        'label': 'Thiết bị khác',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 16,
+        'topic': 'thiet_bi_khac/'
+      },
+      {
+        'label': 'Setting',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 17,
+        'topic': 'setting/'
+      },
+      {
+        'label': 'Reset runtime',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 18,
+        'topic': 'reset_runtime/'
+      },
+      {
+        'label': 'Data collection',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 19,
+        'topic': 'data_collection/'
+      },
+    ],
+    'Hệ 3': []
   };
 
   late String _currentKey;
@@ -136,9 +219,11 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
     super.initState();
     _currentKey = locationId == 5
         ? _systems1.keys.first
-        : locationId == 6
-            ? _systems3.keys.first
-            : _systems2.keys.first;
+        : locationId == 7
+            ? _systems4.keys.first
+            : locationId == 6
+                ? _systems3.keys.first
+                : _systems2.keys.first;
   }
 
   @override
@@ -147,7 +232,9 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
         ? _systems1[_currentKey]!
         : locationId == 6
             ? _systems3[_currentKey]!
-            : _systems2[_currentKey]!;
+            : locationId == 7
+                ? _systems4[_currentKey]!
+                : _systems2[_currentKey]!;
 
     return AppBackground(
       child: Scaffold(
@@ -199,8 +286,8 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                             ),
                           );
                         }).toList()
-                      : locationId == 6
-                          ? _systems3.keys.map((key) {
+                      : locationId == 7
+                          ? _systems4.keys.map((key) {
                               final selected = key == _currentKey;
                               return Padding(
                                 padding: const EdgeInsets.only(right: 8),
@@ -234,40 +321,77 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                 ),
                               );
                             }).toList()
-                          : _systems2.keys.map((key) {
-                              final selected = key == _currentKey;
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(8),
-                                  onTap: () =>
-                                      setState(() => _currentKey = key),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: selected
-                                          ? Theme.of(context)
-                                              .primaryColor
-                                              .withOpacity(.15)
-                                          : Colors.white,
+                          : locationId == 6
+                              ? _systems3.keys.map((key) {
+                                  final selected = key == _currentKey;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: InkWell(
                                       borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      key,
-                                      style: TextStyle(
-                                        fontWeight: selected
-                                            ? FontWeight.bold
-                                            : FontWeight.w500,
-                                        color: selected
-                                            ? Theme.of(context).primaryColor
-                                            : Colors.black87,
+                                      onTap: () =>
+                                          setState(() => _currentKey = key),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 14, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: selected
+                                              ? Theme.of(context)
+                                                  .primaryColor
+                                                  .withOpacity(.15)
+                                              : Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          key,
+                                          style: TextStyle(
+                                            fontWeight: selected
+                                                ? FontWeight.bold
+                                                : FontWeight.w500,
+                                            color: selected
+                                                ? Theme.of(context).primaryColor
+                                                : Colors.black87,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
+                                  );
+                                }).toList()
+                              : _systems2.keys.map((key) {
+                                  final selected = key == _currentKey;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(8),
+                                      onTap: () =>
+                                          setState(() => _currentKey = key),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 14, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: selected
+                                              ? Theme.of(context)
+                                                  .primaryColor
+                                                  .withOpacity(.15)
+                                              : Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          key,
+                                          style: TextStyle(
+                                            fontWeight: selected
+                                                ? FontWeight.bold
+                                                : FontWeight.w500,
+                                            color: selected
+                                                ? Theme.of(context).primaryColor
+                                                : Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
                 ),
               ),
               const SizedBox(height: 10),
@@ -314,8 +438,10 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                           context,
                                           CupertinoPageRoute(
                                             builder: (_) => DeviceControlScreen(
-                                                label: image,
-                                                groupId: item['groupId']),
+                                              label: image,
+                                              groupId: item['groupId'],
+                                              topic: item['topic'],
+                                            ),
                                           ),
                                         );
                                       },
@@ -389,7 +515,8 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                               builder: (_) =>
                                                   DeviceControlScreen(
                                                       label: image,
-                                                      groupId: item['groupId']),
+                                                      groupId: item['groupId'],
+                                                      topic: item['topic']),
                                             ),
                                           );
                                         } else if (value == 'maint') {

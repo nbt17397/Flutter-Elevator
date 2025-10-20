@@ -31,7 +31,7 @@ class RegisterDB {
   String? updatedDate;
   bool? active;
   String? description;
-  int? value;
+  double? value;
   String? type;
   String? unit;
   bool? status;
@@ -57,7 +57,7 @@ class RegisterDB {
     updatedDate = json['updated_date'];
     active = json['active'];
     description = json['description'];
-    value = json['value'];
+    value = json['value']?.toDouble();
     type = json['type'];
     unit = json['unit'];
     status = json['status'];

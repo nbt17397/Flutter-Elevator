@@ -188,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: 'Vụ nuôi',
         asset: 'assets/images/timetable.png',
         onTap: () => Navigator.push(
-            context, CupertinoPageRoute(builder: (_) => BatchListScreen())),
+            context, CupertinoPageRoute(builder: (_) => BatchListScreen(isTest: locationId == 6 ? true : false))),
       ),
       MenuItem(
         title: 'Công việc',
@@ -244,11 +244,12 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     // ⚡ Lọc theo quyền
-    final menuItems = isSuperuser
-        ? allMenus
-        : allMenus.where((item) {
-            return ['Thiết bị', 'Cảnh báo', 'Cài đặt'].contains(item.title);
-          }).toList();
+    // final menuItems = isSuperuser
+    //     ? allMenus
+    //     : allMenus.where((item) {
+    //         return ['Thiết bị', 'Cảnh báo', 'Cài đặt'].contains(item.title);
+    //       }).toList();
+    final menuItems = allMenus;
 
     return GridView.builder(
       padding: const EdgeInsets.all(8),
