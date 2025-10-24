@@ -1,7 +1,7 @@
 class HistoricalData {
   int? id;
   String? type;
-  int? value;
+  double? value;
   String? timestamp;
 
   HistoricalData({this.id, this.type, this.value, this.timestamp});
@@ -10,7 +10,7 @@ class HistoricalData {
     id = json['id'];
 
     type = json['type'];
-    value = (json['value'] as num?)?.toInt();
+    value = (json['value'] as num?)?.toDouble();
     timestamp = json['timestamp'];
   }
 

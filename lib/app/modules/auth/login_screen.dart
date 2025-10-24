@@ -19,8 +19,8 @@ class _LoginScreenState extends State<LoginScreen> {
   late LoginBloc _loginBloc;
   late AuthenticationBloc _authenticationBloc;
   final _formSignInKey = GlobalKey<FormState>();
-  final TextEditingController _usernameController = TextEditingController(text: "hpc");
-  final TextEditingController _passwordController = TextEditingController(text: "123456");
+  final TextEditingController _usernameController = TextEditingController(text: "");
+  final TextEditingController _passwordController = TextEditingController(text: "");
   bool rememberPassword = true;
   bool _obscureText = true;
 

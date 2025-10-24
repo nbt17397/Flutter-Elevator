@@ -36,6 +36,7 @@ class RegisterDB {
   String? unit;
   bool? status;
   String? topic;
+  bool? readOnly;
 
   RegisterDB(
       {this.id,
@@ -48,7 +49,7 @@ class RegisterDB {
       this.type,
       this.unit,
       this.status,
-      this.topic});
+      this.topic, this.readOnly});
 
   RegisterDB.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -61,6 +62,7 @@ class RegisterDB {
     type = json['type'];
     unit = json['unit'];
     status = json['status'];
+    readOnly = json['read_only'];
     topic = json['topic'];
   }
 
@@ -76,6 +78,7 @@ class RegisterDB {
     data['type'] = this.type;
     data['unit'] = this.unit;
     data['status'] = this.status;
+    data['read_only'] = this.readOnly;
     data['topic'] = this.topic;
     return data;
   }

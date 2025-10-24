@@ -16,7 +16,7 @@ class ElevatorUsageFloorChart extends StatefulWidget {
 
 class _ElevatorUsageFloorChartState extends State<ElevatorUsageFloorChart> {
   List<HistoricalData> _historicalData = [];
-  Map<int, int> _floorCounts = {};
+  Map<double, int> _floorCounts = {};
   bool _isLoading = true;
   String _errorMessage = '';
 
@@ -33,7 +33,7 @@ class _ElevatorUsageFloorChartState extends State<ElevatorUsageFloorChart> {
       final List<HistoricalData> data =
           await repo.getHistoricalDataByRegisterID(id: widget.registerId);
       // tính toán số lần mở/cửa theo tầng
-      final Map<int, int> counts = {};
+      final Map<double, int> counts = {};
       for (var item in data) {
         if (item.value != null) {
           counts[item.value!] = (counts[item.value!] ?? 0) + 1;

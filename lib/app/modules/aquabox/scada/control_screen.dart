@@ -52,9 +52,95 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
     super.dispose();
   }
 
+  // Hàm hiển thị dialog cho phép chỉnh sửa giá trị thông số
+  Future<void> _showEditParamDialog(
+      BuildContext context, RegisterDB dev, MqttProvider mqtt) async {
+    TextEditingController _controller = TextEditingController();
+
+    // Thử lấy giá trị hiện tại để điền vào TextField
+    String? raw =
+        _groupDataMap[dev.topic] ?? mqtt.messages['${dev.topic}state'];
+    String currentValue = 'N/A';
+    if (raw != null && raw.isNotEmpty) {
+      try {
+        final d = json.decode(raw);
+        currentValue = d['status']?.toString() ?? 'N/A';
+      } catch (_) {
+        currentValue = raw;
+      }
+    }
+
+    // Điền giá trị hiện tại vào controller
+    _controller.text = currentValue != 'N/A' ? currentValue : '';
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0), // Độ bo góc
+          ),
+          content: TextField(
+            controller: _controller,
+            keyboardType: TextInputType.number, // Giả định là số
+            decoration: InputDecoration(
+              labelText: 'Giá trị mới',
+              hintText: 'Nhập giá trị mới',
+              suffixText: dev.unit,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: const BorderSide(
+                  color: Colors.grey,
+                  width: 1.0,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(
+                  color: Colors.grey.shade400, // Màu viền khi không focus
+                  width: 1.0,
+                ),
+              ),
+
+              // 3. VIỀN KHI FOCUS (focusedBorder)
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: const BorderSide(
+                  color: Colors.blue, // Màu viền khi được chọn (nên khác biệt)
+                  width: 2.0,
+                ),
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Hủy'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Gửi'),
+              onPressed: () {
+                final String newValue = _controller.text.trim();
+                if (newValue.isNotEmpty && newValue != currentValue) {
+                  final payload = json.encode(
+                      {'status': double.tryParse(newValue) ?? newValue});
+                  mqtt.publishMessage('${dev.topic}/set', payload);
+                }
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   // Hàm xây dựng Widget điều khiển/thông số
   Widget _buildControlOrParamWidget(
-      RegisterDB dev, MqttProvider mqtt, bool isConnect, bool isOn, {String? paramValue, String? rawMessage}) {
+      RegisterDB dev, MqttProvider mqtt, bool isConnect, bool isOn,
+      {String? paramValue, String? rawMessage}) {
     // 💡 LOGIC CẦN THAY ĐỔI: Kiểm tra dev.type
     if (dev.type == 'param') {
       // Nếu là thông số (param) thì hiển thị Text (giá trị hiện tại)
@@ -69,12 +155,28 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
         // Nếu không phải JSON, giữ nguyên raw string
         currentValue = currentValue.isEmpty ? 'N/A' : currentValue;
       }
-      return Text(
-        '$currentValue ${dev.unit}', // Hiển thị giá trị thông số
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: isConnect ? Colors.blue : Colors.red,
+      return GestureDetector(
+        onTap: () {
+          // Chỉ cho phép chỉnh sửa nếu thiết bị đang kết nối và KHÔNG phải là chỉ đọc
+          if (isConnect && !dev.readOnly! && !dev.readOnly!) {
+            _showEditParamDialog(context, dev, mqtt);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                duration: Duration(seconds: 1),
+                content: Text('Thông số này không được phép chỉnh sửa'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        },
+        child: Text(
+          '$currentValue ${dev.unit}', // Hiển thị giá trị thông số
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: isConnect ? Colors.blue : Colors.red,
+          ),
         ),
       );
     } else {
@@ -82,7 +184,7 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
       return Switch(
         value: isOn,
         onChanged: (v) {
-          if (!_autoMode && isConnect) {
+          if (!_autoMode && isConnect && !dev.readOnly!) {
             mqtt.publishMessage(
                 '${dev.topic}/set', json.encode({'status': v ? 1 : 0}));
           } else {
@@ -110,10 +212,14 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
         backgroundColor: Colors.transparent,
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            _mqtt.publishMessage(
-                'controller_2/restart/set', json.encode({'status': 0}));
-            _mqtt.publishMessage(
-                'controller_2/restart/set', json.encode({'status': 1}));
+            if (widget.topic != '') {
+              _mqtt.publishMessage('${widget.topic}state', '{}');
+            } else {
+              _mqtt.publishMessage(
+                  'controller_2/restart/set', json.encode({'status': 0}));
+              _mqtt.publishMessage(
+                  'controller_2/restart/set', json.encode({'status': 1}));
+            }
           },
           backgroundColor:
               CustomColors.appbarColor, // Sử dụng màu bạn đã định nghĩa
@@ -241,8 +347,8 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
                                       onTap: () => Navigator.push(
                                         context,
                                         CupertinoPageRoute(
-                                          builder: (_) => DeviceDetailScreen(
-                                              register: dev),
+                                          builder: (_) =>
+                                              DeviceDetailScreen(register: dev),
                                         ),
                                       ),
                                       child: Container(
@@ -276,7 +382,8 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
                                             ),
                                             // 💡 Đổi phần này để gọi hàm tùy chỉnh
                                             _buildControlOrParamWidget(
-                                                dev, mqtt, isConnect, isOn,paramValue: value.toString()),
+                                                dev, mqtt, isConnect, isOn,
+                                                paramValue: value.toString()),
                                           ],
                                         ),
                                       ),

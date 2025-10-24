@@ -209,7 +209,71 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
         'topic': 'data_collection/'
       },
     ],
-    'Hệ 3': []
+    'Hệ 3': [
+      {
+        'label': 'Bơm đầu vào',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 20,
+        'topic': 'bom_nuoc_vao/'
+      },
+      {
+        'label': 'aquabox new',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 21,
+        'topic': 'aquabox_new/'
+      },
+      {
+        'label': 'Bể nuôi 1',
+        'active': true,
+        'image': 'assets/images/pond.png',
+        'groupId': 22,
+        'topic': 'be_nuoi_1/'
+      },
+      {
+        'label': 'Bể nuôi 2',
+        'active': true,
+        'image': 'assets/images/pond.png',
+        'groupId': 23,
+        'topic': 'be_nuoi_2/'
+      },
+      {
+        'label': 'Bể nuôi 3',
+        'active': true,
+        'image': 'assets/images/pond.png',
+        'groupId': 24,
+        'topic': 'be_nuoi_3/'
+      },
+      {
+        'label': 'Thiết bị khác',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 25,
+        'topic': 'thiet_bi_khac/'
+      },
+      {
+        'label': 'Setting',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 26,
+        'topic': 'setting/'
+      },
+      {
+        'label': 'Reset runtime',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 27,
+        'topic': 'reset_runtime/'
+      },
+      {
+        'label': 'Data collection',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 28,
+        'topic': 'data_collection/'
+      },
+    ]
   };
 
   late String _currentKey;
