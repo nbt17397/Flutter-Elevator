@@ -5,7 +5,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 
+import '../../services/mqtt/mqtt_provider.dart';
 import '../auth/bloc/login_bloc.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -17,10 +19,12 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late final LoginBloc _loginBloc;
+  late MqttProvider _mqtt;
 
   @override
   void initState() {
     super.initState();
+    _mqtt = Provider.of<MqttProvider>(context, listen: false);
     _loginBloc = LoginBloc();
   }
 
@@ -28,6 +32,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void dispose() {
     _loginBloc.close();
     super.dispose();
+  }
+
+  // ⭐️ HÀM XỬ LÝ CẬP NHẬT IS_ALARM TRONG HIVE
+  void _toggleAlarm(UserModel user, bool newValue) {
+    if (user.userId == 0) return; // Bảo vệ nếu user là null/default
+
+    final userBox = Hive.box<UserModel>('userModel');
+    final key =
+        userBox.keyAt(0); // Giả định UserModel chỉ có 1 entry tại index 0
+
+    // 1. Tạo bản sao mới với isAlarm được cập nhật
+    final updatedUser = user.copyWith(isAlarm: newValue);
+
+    // 2. Lưu (ghi đè) lại đối tượng mới vào Hive
+    userBox.put(key, updatedUser);
+
+    // Có thể show SnackBar thông báo thành công nếu cần
   }
 
   @override
@@ -40,11 +61,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: ValueListenableBuilder(
             valueListenable: Hive.box<UserModel>('userModel').listenable(),
             builder: (context, Box<UserModel> box, _) {
+              // Lấy user đầu tiên, nếu box không rỗng.
               final user = box.isNotEmpty ? box.getAt(0) : null;
-      
+              final userKey = box.isNotEmpty ? box.keyAt(0) : null;
+
+              // ⭐️ LẤY TRẠNG THÁI IS_ALARM, DÙNG alarmStatus GETTER AN TOÀN
+              final isAlarmEnabled = user?.isAlarm ?? false;
+
               return Column(
                 children: [
-                  // ---------- THẺ HỒ SƠ ----------
+                  // ---------- THẺ HỒ SƠ (Giữ nguyên) ----------
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -98,26 +124,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
-      
+
                   const SizedBox(height: 20),
-      
+
                   // ---------- THÔNG BÁO ----------
                   _buildSwitchItem(
                     icon: Icons.notifications_active,
                     title: 'Thông báo',
-                    value: true,
-                    onChanged: (v) {},
+                    // ⭐️ Đặt giá trị hiện tại
+                    value: isAlarmEnabled,
+                    // ⭐️ GỌI HÀM CẬP NHẬT
+                    onChanged: (newValue) {
+                      if (user != null && userKey != null) {
+                        _toggleAlarm(user, newValue);
+                        if (newValue) {
+                          _mqtt.subscribeTopic('aquabox/alarm/get');
+                        }else{
+                          _mqtt.unsubscribeTopic('aquabox/alarm/get');
+                        }
+                      }
+                    },
                   ),
-      
+
                   // ---------- NGÔN NGỮ ----------
                   _buildLanguageItem(),
-      
+
                   // ---------- PHIÊN BẢN ----------
                   _buildProfileItem(Icons.info, 'Phiên bản', '1.0.0'),
-                  _buildProfileItem(
-                      Icons.info,
-                      'CÔNG TY CỔ PHẦN HẠO PHƯƠNG',
-                      'Email: Info@haophuong.com | Website: www.haophuong.com'),
+                  _buildProfileItem(Icons.info, 'CÔNG TY CỔ PHẦN HẠO PHƯƠNG',
+                      'Email: Info@haophuong.com'),
                 ],
               );
             },
@@ -127,7 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  //--- Widgets tiện ích ------------------------------------------------------
+  //... (Các widget tiện ích giữ nguyên)
 
   Widget _buildSwitchItem({
     required IconData icon,
@@ -159,6 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // ... (Phần còn lại của _buildLanguageItem và _buildProfileItem)
   Widget _buildLanguageItem() {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),

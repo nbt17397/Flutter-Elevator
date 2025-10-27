@@ -1,6 +1,5 @@
-// note you have to hardcode this part
-// for example => (part 'classname.g.dart');
-// class name must be in lower case
+// user_model.dart
+
 import 'package:hive/hive.dart';
 
 // this line must be written by you
@@ -22,15 +21,44 @@ class UserModel {
   final int userId;
   @HiveField(5)
   final String accessToken;
+  
+  // ⭐️ Khai báo là bool? để tương thích ngược với dữ liệu cũ (null)
+  @HiveField(6)
+  final bool? isAlarm;
 
-  // you must provide empty constructor
-  // so hive can generate(serializable) object
-  // so you u can store this object in local db (hive)
   UserModel(
       {required this.username,
       required this.isSuperuser,
       required this.email,
       required this.name,
       required this.userId,
-      required this.accessToken});
+      required this.accessToken,
+      // isAlarm không required
+      this.isAlarm}); 
+      
+  // ⭐️ Getter tiện ích để truy cập giá trị isAlarm an toàn (mặc định là false)
+  bool get alarmStatus => isAlarm ?? false;
+
+  // ⭐️ HÀM copyWith ĐƯỢC YÊU CẦU
+  /// Tạo một bản sao mới của UserModel, cho phép cập nhật từng trường.
+  UserModel copyWith({
+    String? username,
+    bool? isSuperuser,
+    String? email,
+    String? name,
+    int? userId,
+    String? accessToken,
+    bool? isAlarm,
+  }) {
+    return UserModel(
+      username: username ?? this.username,
+      isSuperuser: isSuperuser ?? this.isSuperuser,
+      email: email ?? this.email,
+      name: name ?? this.name,
+      userId: userId ?? this.userId,
+      accessToken: accessToken ?? this.accessToken,
+      // Cập nhật isAlarm nếu được truyền vào, hoặc giữ giá trị cũ
+      isAlarm: isAlarm ?? this.isAlarm, 
+    );
+  }
 }

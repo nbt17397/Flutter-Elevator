@@ -1,21 +1,29 @@
 import 'package:dio/dio.dart';
 import 'package:elevator/app/modules/home/menu_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
+import '../../../config/shared/audio_utils.dart';
+import '../../../config/shared/string_convert.dart';
 import '../../../config/theme/my_theme.dart';
 import '../../../config/translations/localization_service.dart';
 import '../../data/local/my_shared_pref.dart';
 import '../../data/models/user_model.dart';
 import '../../routes/app_pages.dart';
 import '../../services/base_client.dart';
+import '../../services/mqtt/mqtt_provider.dart';
 import '../auth/login_screen.dart';
-import '../home/home_screen.dart';
+// import '../home/home_screen.dart';
 import 'bloc/authentication_bloc.dart';
 import 'package:get/get.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'dart:convert';
 
 class MyAuthentication extends StatefulWidget {
   const MyAuthentication({super.key});
@@ -26,10 +34,12 @@ class MyAuthentication extends StatefulWidget {
 
 class _MyAuthenticationState extends State<MyAuthentication> {
   late AuthenticationBloc _authenticationBloc;
+  late MqttProvider _mqtt;
+
   @override
   void initState() {
     super.initState();
-
+    _mqtt = Provider.of<MqttProvider>(context, listen: false);
     ApiProvider.addInterceptor(
       InterceptorsWrapper(onRequest: (options, handler) {
         print(options.data);
@@ -67,7 +77,7 @@ class _MyAuthenticationState extends State<MyAuthentication> {
       rebuildFactor: (old, data) => true,
       builder: (context, widget) {
         return GetMaterialApp(
-          title: "LASI",
+          title: "AMVi",
           useInheritedMediaQuery: true,
           debugShowCheckedModeBanner: false,
           builder: (context, widget) {
@@ -75,7 +85,8 @@ class _MyAuthenticationState extends State<MyAuthentication> {
             return Theme(
               data: MyTheme.getThemeData(isLight: themeIsLight),
               child: MediaQuery(
-                data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+                data: MediaQuery.of(context)
+                    .copyWith(textScaler: TextScaler.linear(1.0)),
                 child: widget!,
               ),
             );
@@ -83,7 +94,7 @@ class _MyAuthenticationState extends State<MyAuthentication> {
           // initialRoute: AppPages.AUTH, // first screen to show when app is running
           getPages: AppPages.routes, // app screens
           locale: MySharedPref.getCurrentLocal(), // app language
-          
+
           translations: LocalizationService
               .getInstance(), // localization services in app (controller app language)
           home: BlocListener(
@@ -127,7 +138,54 @@ class _MyAuthenticationState extends State<MyAuthentication> {
 
                   if (box.containsKey(0)) {
                     ApiProvider.setBearerAuth(userModel.accessToken);
-                    return MenuScreen();
+                    return Consumer<MqttProvider>(builder: (context, mqtt, _) {
+                      String? rawJson = mqtt.messages['aquabox/alarm/get'];
+                      String? msg;
+                      String level = '0';
+
+                      if (rawJson != null) {
+                        // 1. Phân tích chuỗi JSON và lấy msg
+                        try {
+                          var jsonObject = jsonDecode(rawJson);
+                          String? msgValue = jsonObject['msg'];
+                          level = jsonObject['level'].toString();
+
+                          if (msgValue != null) {
+                            // 2. SỬA LỖI UTF-8 TẠI ĐÂY
+                            msg = fixMqttUtf8(msgValue);
+                          }
+                        } catch (e) {
+                          print("Lỗi phân tích JSON: $e");
+                        }
+                      }
+
+                      if (msg != null && msg.isNotEmpty) {
+                        // ... logic SchedulerBinding và SnackBar ...
+                        SchedulerBinding.instance.addPostFrameCallback((_) {
+                          if (context.mounted) {
+                            playWarningSound(level);
+                            // ScaffoldMessenger.of(context).showSnackBar(
+                            //   SnackBar(
+                            //     // SỬ DỤNG MSG ĐÃ ĐƯỢC SỬA
+                            //     content: Text('Aquabox: $msg'),
+                            //     duration: const Duration(seconds: 3),
+                            //     showCloseIcon: true,
+                            //     backgroundColor: Colors.red,
+                            //   ),
+                            // );
+                            showTopSnackBar(
+                              Overlay.of(context),
+                              displayDuration: Duration(seconds: 2),
+                              CustomSnackBar.error(
+                                message: 'Aquabox: $msg',
+                              ),
+                            );
+                          }
+                        });
+                      }
+
+                      return MenuScreen();
+                    });
                   } else {
                     return const LoginScreen();
                   }

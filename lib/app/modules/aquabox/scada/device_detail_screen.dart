@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
+import 'package:share_plus/share_plus.dart';
 
 // Định nghĩa Enum cho chế độ xem
 enum HistoryViewMode { chart, table }
@@ -187,84 +188,105 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
   // Trong class _DeviceDetailScreenState
 
 // Hàm trợ giúp để lấy thư mục Downloads/Documents (Đã cập nhật)
-Future<Directory> _getDownloadDirectory() async {
-  if (Platform.isAndroid) {
-    // 💡 GIẢI PHÁP HIỆN ĐẠI CHO ANDROID 13+ (Sử dụng getExternalStorageDirectory và tính toán path)
-    // File được lưu vào thư mục này sẽ hiển thị trong file manager.
-    final externalDir = await getExternalStorageDirectory(); 
-    if (externalDir == null) {
-      // Trường hợp khẩn cấp, quay về Documents của app
-      return getApplicationDocumentsDirectory(); 
-    }
-    
-    // Đường dẫn chung của Android (Ví dụ: /storage/emulated/0/Download)
-    // Ta cắt bỏ /Android/data/your.package.name/files để lấy thư mục gốc
-    String rootPath = externalDir.path.split('Android')[0];
-    Directory downloadDir = Directory('${rootPath}Download'); 
-    
-    if (!await downloadDir.exists()) {
+  Future<Directory> _getDownloadDirectory() async {
+    if (Platform.isAndroid) {
+      // 💡 GIẢI PHÁP HIỆN ĐẠI CHO ANDROID 13+ (Sử dụng getExternalStorageDirectory và tính toán path)
+      // File được lưu vào thư mục này sẽ hiển thị trong file manager.
+      final externalDir = await getExternalStorageDirectory();
+      if (externalDir == null) {
+        // Trường hợp khẩn cấp, quay về Documents của app
+        return getApplicationDocumentsDirectory();
+      }
+
+      // Đường dẫn chung của Android (Ví dụ: /storage/emulated/0/Download)
+      // Ta cắt bỏ /Android/data/your.package.name/files để lấy thư mục gốc
+      String rootPath = externalDir.path.split('Android')[0];
+      Directory downloadDir = Directory('${rootPath}Download');
+
+      if (!await downloadDir.exists()) {
         await downloadDir.create(recursive: true);
+      }
+      return downloadDir;
+    } else if (Platform.isIOS) {
+      // iOS: Vẫn dùng Documents là an toàn nhất vì Apple hạn chế truy cập Downloads
+      return getApplicationDocumentsDirectory();
+    } else {
+      // Desktop/Web
+      return getApplicationDocumentsDirectory();
     }
-    return downloadDir;
-
-  } else if (Platform.isIOS) {
-    // iOS: Vẫn dùng Documents là an toàn nhất vì Apple hạn chế truy cập Downloads
-    return getApplicationDocumentsDirectory(); 
-  } else {
-    // Desktop/Web
-    return getApplicationDocumentsDirectory(); 
-  }
-}
-
-
-void _exportToExcel() async {
-  final dataToExport = _getFilteredData();
-
-  if (dataToExport.isEmpty) {
-    debugPrint('Xuất Excel: Không có dữ liệu để xuất.');
-    return;
   }
 
-  try {
-    // 1. Chuẩn bị dữ liệu CSV (giữ nguyên)
-    List<List<dynamic>> csvData = [
-      ['Thời gian', 'Giá trị', 'Thiết bị'],
-      ...dataToExport.map((e) => [
-            _formatTimestamp(e.timestamp),
-            (e.value ?? 'N/A').toString(),
-            widget.register.name.toString(),
-          ]),
-    ];
-    String csvString = const ListToCsvConverter().convert(csvData);
+// Trong class _DeviceDetailScreenState
+  void _exportToExcel() async {
+    final dataToExport = _getFilteredData();
 
-    // 2. Lấy thư mục Downloads/Công khai
-    final directory = await _getDownloadDirectory(); 
-    
-    final fileName =
-        'Data_${widget.register.name}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
-    final path = '${directory.path}/$fileName';
+    if (dataToExport.isEmpty) {
+      debugPrint('Xuất Excel: Không có dữ liệu để xuất.');
+      return;
+    }
 
-    final file = File(path);
-    await file.writeAsString(csvString,
-          encoding: const Utf8Codec(allowMalformed: true)); 
+    try {
+      // ... (logic tạo csvString giữ nguyên) ...
+      List<List<dynamic>> csvData = [
+        ['Thời gian', 'Giá trị', 'Thiết bị'],
+        ...dataToExport.map((e) => [
+              _formatTimestamp(e.timestamp),
+              (e.value ?? 'N/A').toString(),
+              widget.register.name.toString(),
+            ]),
+      ];
+      String csvString = const ListToCsvConverter().convert(csvData);
 
-    // ✅ PHẢN HỒI THÀNH CÔNG RÕ RÀNG
-    debugPrint('✅ Xuất file CSV thành công! File đã lưu tại: $path');
+      // 1. Lấy thư mục lưu trữ dựa trên nền tảng
+      final directory = await _getDownloadDirectory();
 
-  } catch (e) {
-    debugPrint('❌ Lỗi xuất file CSV: ${e.toString()}');
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Lỗi xuất file!'),
-        content: Text('Không thể lưu file vào Downloads: ${e.toString()}'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Đóng')),
-        ],
-      ),
-    );
+      final fileName =
+          'Data_${widget.register.name}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
+      final path = '${directory.path}/$fileName';
+
+      final file = File(path);
+      await file.writeAsString(csvString,
+          encoding: const Utf8Codec(allowMalformed: true));
+
+      debugPrint('✅ Xuất file CSV thành công! File đã lưu tại: $path');
+
+      // 2. KÍCH HOẠT HỘP THOẠI CHIA SẺ (SHARE SHEET)
+      // Việc này buộc iOS tương tác với file, giúp file xuất hiện trong Recents/Gần đây.
+      await Share.shareXFiles(
+        [XFile(path)],
+        text: 'Báo cáo dữ liệu ${widget.register.name}',
+      );
+
+      // 3. (Tùy chọn) Hiển thị Dialog thông báo đã mở Share Sheet (thay vì vị trí)
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Xuất file hoàn tất!'),
+          content: const Text(
+              'Vui lòng chọn ứng dụng (như Tệp/Files) hoặc vị trí lưu trữ từ hộp thoại chia sẻ để file xuất hiện trong mục Gần đây (Recents).'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK')),
+          ],
+        ),
+      );
+    } catch (e) {
+      debugPrint('❌ Lỗi xuất file CSV: ${e.toString()}');
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Lỗi xuất file!'),
+          content: Text('Không thể lưu file: ${e.toString()}'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Đóng')),
+          ],
+        ),
+      );
+    }
   }
-}
 
   @override
   void dispose() {

@@ -30,7 +30,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
               userId: response.userInfo!.id ?? 1,
               isSuperuser: response.userInfo!.isSuperuser!,
               email: response.userInfo!.email!,
-              accessToken: response.token!
+              accessToken: response.token!,
             ));
           }
           emit(LoginSuccess(accessToken: response.token!));

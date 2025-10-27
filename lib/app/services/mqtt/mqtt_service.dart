@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'package:hive/hive.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../data/models/user_model.dart';
 
 class MqttService {
   final String broker =
@@ -37,6 +40,13 @@ class MqttService {
       await client!.connect();
       if (client!.connectionStatus?.state == MqttConnectionState.connected) {
         print("✅ Đã kết nối MQTT");
+        var userBox = Hive.box<UserModel>('userModel');
+        if (userBox.isNotEmpty) {
+          UserModel userModel = userBox.getAt(0)!;
+          if (userModel.isSuperuser && userModel.isAlarm!) {
+            client!.subscribe('aquabox/alarm/get', MqttQos.atLeastOnce);
+          }
+        }
 
         // Đăng ký listener để nhận tin nhắn
         client!.updates!

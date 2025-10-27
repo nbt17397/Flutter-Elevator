@@ -49,6 +49,10 @@ class _DeviceControlScreenState extends State<DeviceControlScreen> {
   @override
   void dispose() {
     _bloc.close();
+    if (widget.topic != '') {
+      _mqtt.unsubscribeTopic('${widget.topic}get');
+    }
+
     super.dispose();
   }
 

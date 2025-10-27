@@ -206,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: 'Cảnh báo',
         asset: 'assets/images/alarm.png',
         onTap: () => Navigator.push(
-            context, CupertinoPageRoute(builder: (_) => AlertScreen())),
+            context, CupertinoPageRoute(builder: (_) => AlertScreen(locationID: _selectedLocationId!))),
       ),
       MenuItem(
         title: 'Thiết bị',
