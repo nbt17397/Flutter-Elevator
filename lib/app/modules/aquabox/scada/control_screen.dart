@@ -15,11 +15,10 @@ class DeviceControlScreen extends StatefulWidget {
   final int groupId;
   final String topic;
   const DeviceControlScreen(
-      {Key? key,
+      {super.key,
       required this.label,
       required this.groupId,
-      required this.topic})
-      : super(key: key);
+      required this.topic});
 
   @override
   State<DeviceControlScreen> createState() => _DeviceControlScreenState();

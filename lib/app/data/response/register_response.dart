@@ -37,6 +37,9 @@ class RegisterDB {
   bool? status;
   String? topic;
   bool? readOnly;
+  bool? isMinorSignal;
+  int? index;
+  int? kind;
 
   RegisterDB(
       {this.id,
@@ -49,7 +52,7 @@ class RegisterDB {
       this.type,
       this.unit,
       this.status,
-      this.topic, this.readOnly});
+      this.topic, this.readOnly, this.isMinorSignal, this.index, this.kind});
 
   RegisterDB.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -64,6 +67,9 @@ class RegisterDB {
     status = json['status'];
     readOnly = json['read_only'];
     topic = json['topic'];
+    isMinorSignal = json['is_minor_signal'];
+    index = json['index'];
+    kind = json['kind'];
   }
 
   Map<String, dynamic> toJson() {
@@ -80,6 +86,9 @@ class RegisterDB {
     data['status'] = this.status;
     data['read_only'] = this.readOnly;
     data['topic'] = this.topic;
+    data['is_minor_signal'] = this.isMinorSignal;
+    data['index'] = this.index;
+    data['kind'] = this.kind;
     return data;
   }
 }

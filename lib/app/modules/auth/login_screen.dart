@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive/hive.dart';
 
 import '../../../config/theme/my_theme.dart';
 import '../../components/custom_scaffold.dart';
@@ -19,10 +20,49 @@ class _LoginScreenState extends State<LoginScreen> {
   late LoginBloc _loginBloc;
   late AuthenticationBloc _authenticationBloc;
   final _formSignInKey = GlobalKey<FormState>();
-  final TextEditingController _usernameController = TextEditingController(text: "");
-  final TextEditingController _passwordController = TextEditingController(text: "");
-  bool rememberPassword = true;
+
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  bool rememberPassword = false;
   bool _obscureText = true;
+  late Box _settingsBox;
+
+  @override
+  void initState() {
+    super.initState();
+    _loginBloc = LoginBloc();
+    _authenticationBloc = BlocProvider.of<AuthenticationBloc>(context);
+
+    // Lấy box 'settings' (Đảm bảo đã openBox trong main.dart)
+    _settingsBox = Hive.box('settings');
+    _loadRememberedData();
+  }
+
+  /// Tải dữ liệu từ Hive và điền vào Controller
+  void _loadRememberedData() {
+    final String? savedEmail = _settingsBox.get('remember_email');
+    final String? savedPass = _settingsBox.get('remember_password');
+
+    if (savedEmail != null && savedPass != null) {
+      setState(() {
+        _usernameController.text = savedEmail;
+        _passwordController.text = savedPass;
+        rememberPassword = true;
+      });
+    }
+  }
+
+  /// Xử lý việc lưu hoặc xóa thông tin đăng nhập trong Hive
+  void _handleRememberMe() {
+    if (rememberPassword) {
+      _settingsBox.put('remember_email', _usernameController.text);
+      _settingsBox.put('remember_password', _passwordController.text);
+    } else {
+      _settingsBox.delete('remember_email');
+      _settingsBox.delete('remember_password');
+    }
+  }
 
   void _toggle() {
     setState(() {
@@ -30,18 +70,24 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _loginBloc = LoginBloc();
-    _authenticationBloc = BlocProvider.of<AuthenticationBloc>(context);
+  void _onLogin() {
+    if (_formSignInKey.currentState!.validate()) {
+      // Cập nhật trạng thái ghi nhớ trước khi thực hiện login
+      _handleRememberMe();
+
+      _loginBloc.add(Login(
+        user: _usernameController.text,
+        password: _passwordController.text,
+      ));
+    }
   }
 
   @override
   void dispose() {
-    super.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
+    _loginBloc.close();
+    super.dispose();
   }
 
   @override
@@ -49,12 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return CustomScaffold(
       child: Column(
         children: [
-          const Expanded(
-            flex: 1,
-            child: SizedBox(
-              height: 10,
-            ),
-          ),
+          const Expanded(flex: 1, child: SizedBox(height: 10)),
           Expanded(
             flex: 7,
             child: Container(
@@ -80,9 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: lightColorScheme.primary,
                         ),
                       ),
-                      const SizedBox(
-                        height: 40.0,
-                      ),
+                      const SizedBox(height: 40.0),
                       MTextFormField(
                         labelText: 'Email',
                         hintText: 'Enter Email',
@@ -96,9 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
+                      const SizedBox(height: 25.0),
                       TextFormField(
                         controller: _passwordController,
                         keyboardType: TextInputType.text,
@@ -112,7 +149,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         obscureText: _obscureText,
                         obscuringCharacter: '*',
-                        autofocus: false,
                         decoration: InputDecoration(
                           suffixIcon: InkWell(
                             onTap: _toggle,
@@ -122,26 +158,17 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           labelText: 'Password',
                           hintText: 'Enter Password',
-                          hintStyle: const TextStyle(
-                            color: Colors.black26,
-                          ),
+                          hintStyle: const TextStyle(color: Colors.black26),
                           border: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
+                            borderSide: const BorderSide(color: Colors.black12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
+                      const SizedBox(height: 15.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -151,20 +178,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                 value: rememberPassword,
                                 onChanged: (bool? value) {
                                   setState(() {
-                                    rememberPassword = value!;
+                                    rememberPassword = value ?? false;
                                   });
                                 },
                                 activeColor: lightColorScheme.primary,
                               ),
                               const Text(
                                 'Remember me',
-                                style: TextStyle(
-                                  color: Colors.black45,
-                                ),
+                                style: TextStyle(color: Colors.black45),
                               ),
                             ],
                           ),
                           GestureDetector(
+                            onTap: () {
+                              // Xử lý quên mật khẩu
+                            },
                             child: Text(
                               'Forget password?',
                               style: TextStyle(
@@ -175,111 +203,40 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
-                      BlocConsumer(
-                          bloc: _loginBloc,
-                          listener: (context, state) {
-                            if (state is LoginSuccess) {
-                              _authenticationBloc.add(
-                                  LoggedIn(accessToken: state.accessToken));
-                            }
-                            if (state is LoginError) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(state.error),
-                                ),
-                              );
-                            }
-                          },
-                          builder: (context, state) {
-                            if (state is LoginLoading) {
-                              return const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 30),
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            }
-                            return SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _onLogin,
-                                child: Text('Sign in',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: lightColorScheme.surface,
-                                    )),
-                              ),
+                      const SizedBox(height: 25.0),
+                      BlocConsumer<LoginBloc, LoginState>(
+                        bloc: _loginBloc,
+                        listener: (context, state) {
+                          if (state is LoginSuccess) {
+                            _authenticationBloc.add(
+                                LoggedIn(accessToken: state.accessToken));
+                          }
+                          if (state is LoginError) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(state.error)),
                             );
-                          }),
-                      const SizedBox(
-                        height: 25.0,
+                          }
+                        },
+                        builder: (context, state) {
+                          if (state is LoginLoading) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          return SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _onLogin,
+                              child: Text('Sign in',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: lightColorScheme.surface,
+                                  )),
+                            ),
+                          );
+                        },
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Divider(
-                              thickness: 0.7,
-                              color: Colors.grey.withOpacity(0.5),
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(
-                              vertical: 0,
-                              horizontal: 10,
-                            ),
-                            child: Text(
-                              'Sign up with',
-                              style: TextStyle(
-                                color: Colors.black45,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Divider(
-                              thickness: 0.7,
-                              color: Colors.grey.withOpacity(0.5),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Don\'t have an account? ',
-                            style: TextStyle(
-                              color: Colors.black45,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (e) => const SignUpScreen(),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              'Sign up',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: lightColorScheme.primary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 20.0,
-                      ),
+                      const SizedBox(height: 35.0),
+                      _buildSignUpSection(),
                     ],
                   ),
                 ),
@@ -291,17 +248,41 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _onLogin() {
-    if (_formSignInKey.currentState!.validate() && rememberPassword) {
-      _loginBloc.add(Login(
-        user: _usernameController.text,
-        password: _passwordController.text,
-      ));
-    } else if (!rememberPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please agree to the processing of personal data')),
-      );
-    }
+  Widget _buildSignUpSection() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(child: Divider(color: Colors.grey.withOpacity(0.5))),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              child: Text('Sign up with', style: TextStyle(color: Colors.black45)),
+            ),
+            Expanded(child: Divider(color: Colors.grey.withOpacity(0.5))),
+          ],
+        ),
+        const SizedBox(height: 25.0),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Don\'t have an account? ',
+                style: TextStyle(color: Colors.black45)),
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (e) => const SignUpScreen()),
+              ),
+              child: Text(
+                'Sign up',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: lightColorScheme.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }

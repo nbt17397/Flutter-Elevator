@@ -1,5 +1,6 @@
 import 'package:elevator/app/components/app_background.dart';
 import 'package:elevator/app/data/response/location_response.dart';
+import 'package:elevator/app/modules/aquabox/scada/control_aquabox_screen.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -144,136 +145,282 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
   };
 
   final _systems4 = <String, List<Map<String, dynamic>>>{
-    'Hệ 1': [
+    'Trạm bơm': [
       {
-        'label': 'Bơm đầu vào',
+        'label': 'Trạm bơm',
         'active': true,
-        'image': 'assets/images/scada.png',
+        'image': 'assets/images/trambom.png',
         'groupId': 11,
-        'topic': 'bom_nuoc_vao/'
+        'topic': 'NinhThuan/Aquabox/trambom/fb/main'
       },
       {
-        'label': 'aquabox new',
+        'label': 'Runtime',
         'active': true,
         'image': 'assets/images/scada.png',
-        'groupId': 12,
+        'groupId': 49,
         'topic': 'aquabox_new/'
+      }
+    ],
+    'Hệ 1': [
+      {
+        'label': 'Main',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 50,
+        'topic': 'NinhThuan/Aquabox/he1/fb/main'
       },
       {
         'label': 'Bể nuôi 1',
         'active': true,
         'image': 'assets/images/pond.png',
-        'groupId': 13,
-        'topic': 'be_nuoi_1/'
+        'groupId': 52,
+        'topic': 'NinhThuan/Aquabox/he1/fb/be1'
       },
       {
         'label': 'Bể nuôi 2',
         'active': true,
         'image': 'assets/images/pond.png',
-        'groupId': 14,
-        'topic': 'be_nuoi_2/'
+        'groupId': 53,
+        'topic': 'NinhThuan/Aquabox/he1/fb/be2'
       },
       {
         'label': 'Bể nuôi 3',
         'active': true,
         'image': 'assets/images/pond.png',
-        'groupId': 15,
-        'topic': 'be_nuoi_3/'
+        'groupId': 54,
+        'topic': 'NinhThuan/Aquabox/he1/fb/be3'
       },
       {
-        'label': 'Thiết bị khác',
+        'label': 'Bess',
         'active': true,
         'image': 'assets/images/scada.png',
-        'groupId': 16,
-        'topic': 'thiet_bi_khac/'
+        'groupId': 51,
+        'topic': 'NinhThuan/Aquabox/he1/fb/bess'
+      },
+       {
+        'label': 'Oxyss',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 58,
+        'topic': 'NinhThuan/Aquabox/he1/fb/oxyss'
       },
       {
-        'label': 'Setting',
+        'label': 'Setting 1',
         'active': true,
         'image': 'assets/images/scada.png',
-        'groupId': 17,
-        'topic': 'setting/'
+        'groupId': 55,
+        'topic': 'NinhThuan/Aquabox/he1/fb/setting1'
       },
       {
-        'label': 'Reset runtime',
+        'label': 'Setting 2',
         'active': true,
         'image': 'assets/images/scada.png',
-        'groupId': 18,
-        'topic': 'reset_runtime/'
+        'groupId': 56,
+        'topic': 'NinhThuan/Aquabox/he1/fb/setting2'
       },
       {
-        'label': 'Data collection',
+        'label': 'Runtime',
         'active': true,
         'image': 'assets/images/scada.png',
-        'groupId': 19,
-        'topic': 'data_collection/'
+        'groupId': 57,
+        'topic': 'NinhThuan/Aquabox/he1/fb/runtime'
+      },
+    ],
+    'Hệ 2': [
+      {
+        'label': 'Main',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 59,
+        'topic': 'NinhThuan/Aquabox/he2/fb/main'
+      },
+      {
+        'label': 'Bể nuôi 1',
+        'active': true,
+        'image': 'assets/images/pond.png',
+        'groupId': 61,
+        'topic': 'NinhThuan/Aquabox/he2/fb/be1'
+      },
+      {
+        'label': 'Bể nuôi 2',
+        'active': true,
+        'image': 'assets/images/pond.png',
+        'groupId': 62,
+        'topic': 'NinhThuan/Aquabox/he2/fb/be2'
+      },
+      {
+        'label': 'Bể nuôi 3',
+        'active': true,
+        'image': 'assets/images/pond.png',
+        'groupId': 63,
+        'topic': 'NinhThuan/Aquabox/he2/fb/be3'
+      },
+      {
+        'label': 'Bess',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 60,
+        'topic': 'NinhThuan/Aquabox/he2/fb/bess'
+      },
+       {
+        'label': 'Oxyss',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 67,
+        'topic': 'NinhThuan/Aquabox/he2/fb/oxyss'
+      },
+      {
+        'label': 'Setting 1',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 64,
+        'topic': 'NinhThuan/Aquabox/he2/fb/setting1'
+      },
+      {
+        'label': 'Setting 2',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 65,
+        'topic': 'NinhThuan/Aquabox/he2/fb/setting2'
+      },
+      {
+        'label': 'Runtime',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 66,
+        'topic': 'NinhThuan/Aquabox/he2/fb/runtime'
       },
     ],
     'Hệ 3': [
       {
-        'label': 'Bơm đầu vào',
+        'label': 'Main',
         'active': true,
         'image': 'assets/images/scada.png',
-        'groupId': 20,
-        'topic': 'bom_nuoc_vao/'
-      },
-      {
-        'label': 'aquabox new',
-        'active': true,
-        'image': 'assets/images/scada.png',
-        'groupId': 21,
-        'topic': 'aquabox_new/'
+        'groupId': 68,
+        'topic': 'NinhThuan/Aquabox/he3/fb/main'
       },
       {
         'label': 'Bể nuôi 1',
         'active': true,
         'image': 'assets/images/pond.png',
-        'groupId': 22,
-        'topic': 'be_nuoi_1/'
+        'groupId': 70,
+        'topic': 'NinhThuan/Aquabox/he3/fb/be1'
       },
       {
         'label': 'Bể nuôi 2',
         'active': true,
         'image': 'assets/images/pond.png',
-        'groupId': 23,
-        'topic': 'be_nuoi_2/'
+        'groupId': 71,
+        'topic': 'NinhThuan/Aquabox/he3/fb/be2'
       },
       {
         'label': 'Bể nuôi 3',
         'active': true,
         'image': 'assets/images/pond.png',
-        'groupId': 24,
-        'topic': 'be_nuoi_3/'
+        'groupId': 72,
+        'topic': 'NinhThuan/Aquabox/he3/fb/be3'
       },
       {
-        'label': 'Thiết bị khác',
+        'label': 'Bess',
         'active': true,
         'image': 'assets/images/scada.png',
-        'groupId': 25,
-        'topic': 'thiet_bi_khac/'
+        'groupId': 69,
+        'topic': 'NinhThuan/Aquabox/he3/fb/bess'
+      },
+       {
+        'label': 'Oxyss',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 76,
+        'topic': 'NinhThuan/Aquabox/he3/fb/oxyss'
       },
       {
-        'label': 'Setting',
+        'label': 'Setting 1',
         'active': true,
         'image': 'assets/images/scada.png',
-        'groupId': 26,
-        'topic': 'setting/'
+        'groupId': 73,
+        'topic': 'NinhThuan/Aquabox/he3/fb/setting1'
       },
       {
-        'label': 'Reset runtime',
+        'label': 'Setting 2',
         'active': true,
         'image': 'assets/images/scada.png',
-        'groupId': 27,
-        'topic': 'reset_runtime/'
+        'groupId': 74,
+        'topic': 'NinhThuan/Aquabox/he3/fb/setting2'
       },
       {
-        'label': 'Data collection',
+        'label': 'Runtime',
         'active': true,
         'image': 'assets/images/scada.png',
-        'groupId': 28,
-        'topic': 'data_collection/'
+        'groupId': 75,
+        'topic': 'NinhThuan/Aquabox/he3/fb/runtime'
       },
-    ]
+    ],
+    'Hệ 3A': [
+      {
+        'label': 'Main',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 77,
+        'topic': 'NinhThuan/Aquabox/he4/fb/main'
+      },
+      {
+        'label': 'Bể nuôi 1',
+        'active': true,
+        'image': 'assets/images/pond.png',
+        'groupId': 79,
+        'topic': 'NinhThuan/Aquabox/he4/fb/be1'
+      },
+      {
+        'label': 'Bể nuôi 2',
+        'active': true,
+        'image': 'assets/images/pond.png',
+        'groupId': 80,
+        'topic': 'NinhThuan/Aquabox/he4/fb/be2'
+      },
+      {
+        'label': 'Bể nuôi 3',
+        'active': true,
+        'image': 'assets/images/pond.png',
+        'groupId': 81,
+        'topic': 'NinhThuan/Aquabox/he4/fb/be3'
+      },
+      {
+        'label': 'Bess',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 78,
+        'topic': 'NinhThuan/Aquabox/he4/fb/bess'
+      },
+       {
+        'label': 'Oxyss',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 85,
+        'topic': 'NinhThuan/Aquabox/he4/fb/oxyss'
+      },
+      {
+        'label': 'Setting 1',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 82,
+        'topic': 'NinhThuan/Aquabox/he4/fb/setting1'
+      },
+      {
+        'label': 'Setting 2',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 83,
+        'topic': 'NinhThuan/Aquabox/he4/fb/setting2'
+      },
+      {
+        'label': 'Runtime',
+        'active': true,
+        'image': 'assets/images/scada.png',
+        'groupId': 84,
+        'topic': 'NinhThuan/Aquabox/he4/fb/runtime'
+      },
+    ],
   };
 
   late String _currentKey;
@@ -501,7 +648,7 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                         Navigator.push(
                                           context,
                                           CupertinoPageRoute(
-                                            builder: (_) => DeviceControlScreen(
+                                            builder: (_) => AquaboxDeviceControlScreen(
                                               label: image,
                                               groupId: item['groupId'],
                                               topic: item['topic'],
@@ -577,7 +724,7 @@ class _ScadaMenuScreenState extends State<ScadaMenuScreen> {
                                             context,
                                             CupertinoPageRoute(
                                               builder: (_) =>
-                                                  DeviceControlScreen(
+                                                  AquaboxDeviceControlScreen(
                                                       label: image,
                                                       groupId: item['groupId'],
                                                       topic: item['topic']),

@@ -28,6 +28,7 @@ Future<void> main() async {
   // init shared preference
   await MySharedPref.init();
   await Hive.openBox<UserModel>('userModel');
+  await Hive.openBox('settings');
 
   SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent));

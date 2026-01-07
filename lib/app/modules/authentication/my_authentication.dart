@@ -164,15 +164,6 @@ class _MyAuthenticationState extends State<MyAuthentication> {
                         SchedulerBinding.instance.addPostFrameCallback((_) {
                           if (context.mounted) {
                             playWarningSound(level);
-                            // ScaffoldMessenger.of(context).showSnackBar(
-                            //   SnackBar(
-                            //     // SỬ DỤNG MSG ĐÃ ĐƯỢC SỬA
-                            //     content: Text('Aquabox: $msg'),
-                            //     duration: const Duration(seconds: 3),
-                            //     showCloseIcon: true,
-                            //     backgroundColor: Colors.red,
-                            //   ),
-                            // );
                             showTopSnackBar(
                               Overlay.of(context),
                               displayDuration: Duration(seconds: 2),

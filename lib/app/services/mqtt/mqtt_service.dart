@@ -3,120 +3,118 @@ import 'package:hive/hive.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:uuid/uuid.dart';
-
 import '../../data/models/user_model.dart';
 
 class MqttService {
-  final String broker =
-      "mqtt-elevator.haophuong.com"; // Thay bằng broker của bạn
+  final String broker = "mqtt-elevator.haophuong.com";
   final int port = 2001;
-  final String clientId =
-      const Uuid().v4().substring(0, 8); // Tạo clientId ngẫu nhiên
+  final String clientId = const Uuid().v4().substring(0, 8);
+
   MqttServerClient? client;
   bool _isConnected = false;
   Timer? _reconnectTimer;
 
   Future<bool> connect(Function(String, String) onMessageReceived) async {
-    client = MqttServerClient(broker, clientId);
-    client!.port = port;
-    client!.logging(on: true);
-    client!.secure = false;
-    client!.useWebSocket = false;
-    client!.keepAlivePeriod = 60;
+    // 1. Khởi tạo client cục bộ để đảm bảo an toàn thread
+    final currentClient = MqttServerClient(broker, clientId);
+    currentClient.port = port;
+    currentClient.logging(on: false); // Tắt bớt log nếu không cần thiết
+    currentClient.secure = false;
+    currentClient.useWebSocket = false;
+    currentClient.keepAlivePeriod = 60;
+    currentClient.autoReconnect =
+        false; // Tự xử lý reconnect bằng Timer bên dưới
 
-    client!.onConnected = () {
-      print("✅ Kết nối MQTT thành công với clientId: $clientId");
+    currentClient.onConnected = () {
+      print("✅ MQTT Connected: $clientId");
       _isConnected = true;
-      _reconnectTimer?.cancel(); // Dừng reconnect nếu đã kết nối thành công
+      _reconnectTimer?.cancel();
+      _reconnectTimer = null;
     };
 
-    client!.onDisconnected = () {
-      print("❌ Mất kết nối MQTT! Đang thử kết nối lại...");
+    currentClient.onDisconnected = () {
+      print("❌ MQTT Disconnected!");
       _isConnected = false;
       _attemptReconnect(onMessageReceived);
     };
 
     try {
-      await client!.connect();
-      if (client!.connectionStatus?.state == MqttConnectionState.connected) {
-        print("✅ Đã kết nối MQTT");
-        var userBox = Hive.box<UserModel>('userModel');
-        if (userBox.isNotEmpty) {
-          UserModel userModel = userBox.getAt(0)!;
-          if (userModel.isSuperuser && userModel.isAlarm!) {
-            client!.subscribe('aquabox/alarm/get', MqttQos.atLeastOnce);
+      client = currentClient; // Gán vào biến global sau khi cấu hình
+      await currentClient.connect();
+
+      if (currentClient.connectionStatus?.state ==
+          MqttConnectionState.connected) {
+        // 2. Xử lý Hive an toàn
+        if (Hive.isBoxOpen('userModel')) {
+          var userBox = Hive.box<UserModel>('userModel');
+          if (userBox.isNotEmpty) {
+            final userModel = userBox.getAt(0);
+            if (userModel != null &&
+                userModel.isSuperuser &&
+                (userModel.isAlarm ?? false)) {
+              currentClient.subscribe('aquabox/alarm/get', MqttQos.atLeastOnce);
+            }
           }
         }
 
-        // Đăng ký listener để nhận tin nhắn
-        client!.updates!
-            .listen((List<MqttReceivedMessage<MqttMessage?>>? messages) {
+        // 3. Đăng ký listener an toàn
+        currentClient.updates
+            ?.listen((List<MqttReceivedMessage<MqttMessage?>>? messages) {
+          if (messages == null || messages.isEmpty) return;
+
           final MqttPublishMessage recMess =
-              messages![0].payload as MqttPublishMessage;
+              messages[0].payload as MqttPublishMessage;
           final String topic = messages[0].topic;
           final String payload =
               MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
 
-          print("📩 Nhận tin nhắn từ $topic: $payload");
-
-          // Gửi tin nhắn đến listener đã đăng ký
           onMessageReceived(topic, payload);
         });
 
         return true;
-      } else {
-        print("⚠️ Kết nối MQTT thất bại");
-        return false;
       }
     } catch (e) {
-      print("⚠️ Lỗi kết nối MQTT: $e");
+      print("⚠️ MQTT Connection Error: $e");
       _attemptReconnect(onMessageReceived);
-      return false;
     }
+    return false;
   }
 
   void _attemptReconnect(Function(String, String) onMessageReceived) {
-    if (_reconnectTimer != null && _reconnectTimer!.isActive) return;
-    _reconnectTimer = Timer.periodic(Duration(seconds: 15), (timer) {
+    if (_reconnectTimer != null) return;
+
+    _reconnectTimer =
+        Timer.periodic(const Duration(seconds: 15), (timer) async {
       if (!_isConnected) {
-        print("🔄 Thử kết nối lại MQTT...");
-        connect(onMessageReceived);
+        print("🔄 Reconnecting MQTT...");
+        await connect(onMessageReceived);
       } else {
         timer.cancel();
+        _reconnectTimer = null;
       }
     });
   }
 
   void subscribe(String topic) {
-    if (client != null &&
-        client!.connectionStatus?.state == MqttConnectionState.connected) {
-      client!.subscribe(topic, MqttQos.atLeastOnce);
-      print("📡 Subscribed: $topic");
-    } else {
-      print("⚠️ Không thể subscribe, client chưa kết nối!");
+    if (client?.connectionStatus?.state == MqttConnectionState.connected) {
+      client?.subscribe(topic, MqttQos.atLeastOnce);
     }
   }
 
   void unsubscribe(String topic) {
-    if (client != null &&
-        client!.connectionStatus?.state == MqttConnectionState.connected) {
-      client!.unsubscribe(topic, expectAcknowledge: true);
-      print("🚫 Unsubscribed: $topic");
-    } else {
-      print("⚠️ Không thể unsubscribe, client chưa kết nối!");
+    if (client?.connectionStatus?.state == MqttConnectionState.connected) {
+      client?.unsubscribe(topic, expectAcknowledge: true);
     }
   }
 
   void publish(String topic, String message) {
-    if (client != null &&
-        client!.connectionStatus?.state == MqttConnectionState.connected) {
+    final c = client; // Tạo bản sao local để check null
+    if (c != null &&
+        c.connectionStatus?.state == MqttConnectionState.connected) {
       final builder = MqttClientPayloadBuilder();
       builder.addString(message);
-      client!.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
-      print("✅ Đã publish thành công tới topic: $topic");
-      print("📨 Nội dung: $message");
-    } else {
-      print("⚠️ Không thể publish, client chưa kết nối!");
+      c.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!,
+          retain: true);
     }
   }
 }
