@@ -1,12 +1,13 @@
 import 'dart:async';
 
 import 'package:elevator/app/components/shimmer_loading.dart';
-import 'package:elevator/app/modules/home/home_screen.dart';
 import 'package:elevator/app/modules/profile/profile_screen.dart';
 import 'package:elevator/config/shared/colors.dart';
 import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 
+import '../huan_farm/home_scada_screen.dart';
+import '../huan_farm/schedule_scada_screen.dart';
 import '../notification/notification_screen.dart';
 
 class MenuScreen extends StatefulWidget {
@@ -43,10 +44,12 @@ class _MenuScreenState extends State<MenuScreen> {
             backgroundColor: CustomColors.primaryColor,
             extendBody: true,
             body: snapshot.data == 0
-                ? HomeScreen()
+                ? HomeScadaScreen()
                 : snapshot.data == 1
-                    ? NotificationScreen()
-                    : ProfileScreen(),
+                    ? SystemSettingsScreen()
+                    : snapshot.data == 2
+                        ? NotificationScreen()
+                        : ProfileScreen(),
             bottomNavigationBar: ClipRRect(
               child: FloatingNavbar(
                 padding: EdgeInsets.symmetric(horizontal: 0, vertical: 3),
@@ -57,8 +60,10 @@ class _MenuScreenState extends State<MenuScreen> {
                 items: [
                   FloatingNavbarItem(icon: Icons.home, title: 'Trang chủ'),
                   FloatingNavbarItem(
+                      icon: Icons.calendar_month_rounded, title: 'Hệ thống'),
+                  FloatingNavbarItem(
                       icon: Icons.notifications_active_outlined,
-                      title: 'Thông báo'),
+                      title: 'Cảnh báo'),
                   FloatingNavbarItem(icon: Icons.settings, title: 'Cài đặt'),
                 ],
               ),

@@ -1,4 +1,4 @@
-package com.haophuong.amvi
+package vn.hpc.huan_farm
 
 import io.flutter.embedding.android.FlutterActivity
 
