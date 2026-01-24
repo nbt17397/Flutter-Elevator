@@ -83,23 +83,20 @@ class _AquaboxDeviceControlScreenState
   // --- Widget điều khiển ---
   Widget _buildControlWidget(RegisterDB dev, MqttProvider mqtt, bool isConnect,
       bool isOn, List<RegisterDB> allRegs, dynamic value) {
-
-    if (dev.type == 'param') {
-      String? raw = _groupDataMap[dev.id];
-      String displayVal = 'N/A';
-      if (raw != null) {
-        try {
-          displayVal = json.decode(raw)['status'].toString();
-        } catch (_) {}
-      }
-      return Text('$displayVal ${dev.unit}',
-          style: TextStyle(
+    if (dev.readOnly == true) {
+      if (dev.type == 'param') {
+        return Padding(
+          padding: const EdgeInsets.only(right: 14.0), // Đẩy từ lề phải vào
+          child: Text(
+            '${value?.toString() ?? 'N/A'} ${dev.unit ?? ''}',
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: isConnect ? Colors.blue : Colors.red));
-    }
-
-    if (dev.readOnly == true) {
+              color: isConnect ? Colors.blue : Colors.red,
+            ),
+          ),
+        );
+      }
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         margin: const EdgeInsets.only(right: 14),
@@ -208,7 +205,7 @@ class _AquaboxDeviceControlScreenState
                         // BỔ SUNG LOGIC HIỂN THỊ THEO YÊU CẦU
                         final filteredRegs = allRegs.where((r) {
                           if (_showMinorSignals) return true;
-                          
+
                           // Lấy giá trị hiện tại từ map để check value == 1
                           bool isActive = false;
                           final String? jsonStr = _groupDataMap[r.id];
@@ -229,7 +226,8 @@ class _AquaboxDeviceControlScreenState
                           final kindKey = reg.kind ?? 0;
                           groupedByKind.putIfAbsent(kindKey, () => []).add(reg);
                         }
-                        final sortedIndexes = groupedByKind.keys.toList()..sort();
+                        final sortedIndexes = groupedByKind.keys.toList()
+                          ..sort();
 
                         return SliverPadding(
                           padding: const EdgeInsets.fromLTRB(12, 16, 12, 80),
@@ -305,9 +303,8 @@ class _AquaboxDeviceControlScreenState
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     fontSize: 13,
-                    color: (val == 3 || val == 4)
-                        ? Colors.red
-                        : Colors.black87)),
+                    color:
+                        (val == 3 || val == 4) ? Colors.red : Colors.black87)),
           ),
           _buildControlWidget(dev, mqtt, isConnect, isOn, allRegs, val),
         ],

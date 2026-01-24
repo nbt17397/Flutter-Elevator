@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
@@ -14,7 +15,7 @@ class MqttService {
   bool _isConnected = false;
   Timer? _reconnectTimer;
 
-  Future<bool> connect(Function(String, String) onMessageReceived) async {
+  Future<bool> connect(Function(String, String) onMessageReceived, {VoidCallback? onConnected}) async {
     // 1. Khởi tạo client cục bộ để đảm bảo an toàn thread
     final currentClient = MqttServerClient(broker, clientId);
     currentClient.port = port;
@@ -28,6 +29,7 @@ class MqttService {
     currentClient.onConnected = () {
       print("✅ MQTT Connected: $clientId");
       _isConnected = true;
+      if (onConnected != null) onConnected();
       _reconnectTimer?.cancel();
       _reconnectTimer = null;
     };
