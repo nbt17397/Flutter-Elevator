@@ -6,6 +6,7 @@ import 'package:elevator/config/shared/colors.dart';
 import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 
+import '../aquabox/alert/alert_screen.dart';
 import '../huan_farm/home_scada_screen.dart';
 import '../huan_farm/schedule_scada_screen.dart';
 import '../notification/notification_screen.dart';
@@ -48,7 +49,7 @@ class _MenuScreenState extends State<MenuScreen> {
                 : snapshot.data == 1
                     ? SystemSettingsScreen()
                     : snapshot.data == 2
-                        ? NotificationScreen()
+                        ? AlertScreen(locationID: 8)
                         : ProfileScreen(),
             bottomNavigationBar: ClipRRect(
               child: FloatingNavbar(

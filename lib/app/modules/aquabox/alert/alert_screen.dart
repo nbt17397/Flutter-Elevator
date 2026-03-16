@@ -447,18 +447,18 @@ class _AlertScreenState extends State<AlertScreen>
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _colorFor(level).withOpacity(.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(level == '0' ? 'Thấp' : 'Cao', // Hiển thị mức độ
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: _colorFor(level))),
-              ),
+              // Container(
+              //   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              //   decoration: BoxDecoration(
+              //     color: _colorFor(level).withOpacity(.15),
+              //     borderRadius: BorderRadius.circular(20),
+              //   ),
+              //   child: Text(level == '0' ? 'Thấp' : 'Cao', // Hiển thị mức độ
+              //       style: TextStyle(
+              //           fontSize: 11,
+              //           fontWeight: FontWeight.w600,
+              //           color: _colorFor(level))),
+              // ),
             ],
           ),
         ),
