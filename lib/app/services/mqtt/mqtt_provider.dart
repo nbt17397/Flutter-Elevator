@@ -16,8 +16,9 @@ class MqttProvider with ChangeNotifier {
   }
 
   Future<void> _initMqtt() async {
-    isConnected = await mqttService.connect(onMessageReceived, onConnected: _onConnectedCallback);
-    
+    isConnected = await mqttService.connect(onMessageReceived,
+        onConnected: _onConnectedCallback);
+
     notifyListeners();
   }
 
@@ -44,8 +45,14 @@ class MqttProvider with ChangeNotifier {
 
   void onMessageReceived(String topic, String payload) {
     try {
-      final Map<String, dynamic> data = jsonDecode(payload);
-      _messages[topic] = data['status'].toString();
+      if (topic == 'controller_3/alarm') {
+        // Topic alarm: lưu nguyên raw JSON để parse title, description, level
+        _messages[topic] = payload;
+      } else {
+        // Các topic khác: lấy field 'status'
+        final Map<String, dynamic> data = jsonDecode(payload);
+        _messages[topic] = data['status'].toString();
+      }
     } catch (e) {
       _messages[topic] = payload;
     }

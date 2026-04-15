@@ -52,9 +52,8 @@ class MqttService {
           if (userBox.isNotEmpty) {
             final userModel = userBox.getAt(0);
             if (userModel != null &&
-                userModel.isSuperuser &&
-                (userModel.isAlarm ?? false)) {
-              currentClient.subscribe('aquabox/alarm/get', MqttQos.atLeastOnce);
+                userModel.isSuperuser) {
+              currentClient.subscribe('controller_3/alarm', MqttQos.atLeastOnce);
             }
           }
         }

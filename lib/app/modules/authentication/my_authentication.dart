@@ -18,7 +18,6 @@ import '../../routes/app_pages.dart';
 import '../../services/base_client.dart';
 import '../../services/mqtt/mqtt_provider.dart';
 import '../auth/login_screen.dart';
-// import '../home/home_screen.dart';
 import 'bloc/authentication_bloc.dart';
 import 'package:get/get.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,11 +34,15 @@ class MyAuthentication extends StatefulWidget {
 class _MyAuthenticationState extends State<MyAuthentication> {
   late AuthenticationBloc _authenticationBloc;
   late MqttProvider _mqtt;
+  String? _lastHandledAlarm;
 
   @override
   void initState() {
     super.initState();
     _mqtt = Provider.of<MqttProvider>(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _mqtt.subscribeTopic("controller_3/alarm");
+    });
     ApiProvider.addInterceptor(
       InterceptorsWrapper(onRequest: (options, handler) {
         print(options.data);
@@ -48,7 +51,6 @@ class _MyAuthenticationState extends State<MyAuthentication> {
         print(response);
         if (response.statusCode == 401) {
           print('Shut down: 401');
-
           _authenticationBloc.add(ShutDown());
         }
         return handler.next(response);
@@ -65,6 +67,51 @@ class _MyAuthenticationState extends State<MyAuthentication> {
     super.dispose();
     _authenticationBloc.close();
     Hive.close();
+  }
+
+  void _handleAlarmMessage(BuildContext context, String rawJson) {
+    if (rawJson.isEmpty) return;
+
+    // Nếu message này đã xử lý rồi thì bỏ qua
+    if (rawJson == _lastHandledAlarm) return;
+    _lastHandledAlarm = rawJson;
+
+    try {
+      final jsonObject = jsonDecode(rawJson);
+
+      if (jsonObject == null || jsonObject is! Map) {
+        print("JSON alarm không hợp lệ: $rawJson");
+        return;
+      }
+
+      final String? title = jsonObject['title'] != null
+          ? fixMqttUtf8(jsonObject['title'].toString())
+          : null;
+      final String? description = jsonObject['description'] != null
+          ? fixMqttUtf8(jsonObject['description'].toString())
+          : null;
+      final String level = (jsonObject['level'] ?? 0).toString();
+
+      if (title != null && title.isNotEmpty) {
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            playWarningSound(level);
+            showTopSnackBar(
+              Overlay.of(context),
+              displayDuration: const Duration(seconds: 10),
+              CustomSnackBar.error(
+                message: (description != null && description.isNotEmpty)
+                    ? '$title\n$description'
+                    : title,
+              ),
+            );
+          }
+        });
+      }
+    } catch (e) {
+      print("Lỗi phân tích JSON alarm: $e");
+      print("Raw JSON: $rawJson");
+    }
   }
 
   @override
@@ -91,36 +138,34 @@ class _MyAuthenticationState extends State<MyAuthentication> {
               ),
             );
           },
-          // initialRoute: AppPages.AUTH, // first screen to show when app is running
-          getPages: AppPages.routes, // app screens
-          locale: MySharedPref.getCurrentLocal(), // app language
-
-          translations: LocalizationService
-              .getInstance(), // localization services in app (controller app language)
+          getPages: AppPages.routes,
+          locale: MySharedPref.getCurrentLocal(),
+          translations: LocalizationService.getInstance(),
           home: BlocListener(
             bloc: _authenticationBloc,
             listener: (BuildContext context, AuthenticationState state) {
               if (state is AuthenticationUnauthenticated) {
                 if (state.type == 2) {
                   showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('Cảnh báo'),
-                          content: const Text(
-                              'Phiên đăng nhập đã kết thúc, vui lòng đăng nhập lại.'),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                Navigator.popUntil(
-                                    context, ModalRoute.withName('/'));
-                              },
-                              child: const Text('Đồng ý'),
-                            )
-                          ],
-                        );
-                      }).then((_) {
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Cảnh báo'),
+                        content: const Text(
+                            'Phiên đăng nhập đã kết thúc, vui lòng đăng nhập lại.'),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.popUntil(
+                                  context, ModalRoute.withName('/'));
+                            },
+                            child: const Text('Đồng ý'),
+                          )
+                        ],
+                      );
+                    },
+                  ).then((_) {
                     if (mounted) {
                       Navigator.popUntil(context, ModalRoute.withName('/'));
                     }
@@ -133,54 +178,28 @@ class _MyAuthenticationState extends State<MyAuthentication> {
               builder: (context, Box<UserModel> box, _) {
                 if (box.values.isEmpty) {
                   return const LoginScreen();
-                } else {
-                  UserModel userModel = box.getAt(0)!;
-
-                  if (box.containsKey(0)) {
-                    ApiProvider.setBearerAuth(userModel.accessToken);
-                    return Consumer<MqttProvider>(builder: (context, mqtt, _) {
-                      String? rawJson = mqtt.messages['aquabox/alarm/get'];
-                      String? msg;
-                      String level = '0';
-
-                      if (rawJson != null) {
-                        // 1. Phân tích chuỗi JSON và lấy msg
-                        try {
-                          var jsonObject = jsonDecode(rawJson);
-                          String? msgValue = jsonObject['msg'];
-                          level = jsonObject['level'].toString();
-
-                          if (msgValue != null) {
-                            // 2. SỬA LỖI UTF-8 TẠI ĐÂY
-                            msg = fixMqttUtf8(msgValue);
-                          }
-                        } catch (e) {
-                          print("Lỗi phân tích JSON: $e");
-                        }
-                      }
-
-                      if (msg != null && msg.isNotEmpty) {
-                        // ... logic SchedulerBinding và SnackBar ...
-                        SchedulerBinding.instance.addPostFrameCallback((_) {
-                          if (context.mounted) {
-                            playWarningSound(level);
-                            showTopSnackBar(
-                              Overlay.of(context),
-                              displayDuration: Duration(seconds: 2),
-                              CustomSnackBar.error(
-                                message: 'Aquabox: $msg',
-                              ),
-                            );
-                          }
-                        });
-                      }
-
-                      return MenuScreen();
-                    });
-                  } else {
-                    return const LoginScreen();
-                  }
                 }
+
+                UserModel userModel = box.getAt(0)!;
+
+                if (!box.containsKey(0)) {
+                  return const LoginScreen();
+                }
+
+                ApiProvider.setBearerAuth(userModel.accessToken);
+
+                return Consumer<MqttProvider>(
+                  builder: (context, mqtt, _) {
+                    final String? rawJson =
+                        mqtt.messages['controller_3/alarm'];
+
+                    if (rawJson != null && rawJson.isNotEmpty) {
+                      _handleAlarmMessage(context, rawJson);
+                    }
+
+                    return MenuScreen();
+                  },
+                );
               },
             ),
           ),
